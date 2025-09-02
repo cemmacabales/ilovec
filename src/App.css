@@ -446,16 +446,74 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.modal-overlay-closing {
+  animation: modalFadeOut 0.2s ease-in;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalSlideOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
 }
 
 .modal-content {
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   width: 96%;
-  max-width: 960px; /* larger to fit two columns */
-  max-height: 86vh;
-  overflow: hidden; /* allow inner panes to scroll */
+  max-width: 900px;
+  max-height: 540px;
+  min-height: 400px;
+  overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  /* Hide scrollbar for Webkit browsers */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+  animation: modalSlideIn 0.2s ease-out;
+}
+
+.modal-content-closing {
+  animation: modalSlideOut 0.2s ease-in;
+}
+
+.modal-content::-webkit-scrollbar {
+  display: none;
 }
 
 .modal-header {
@@ -490,233 +548,48 @@ body {
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 32px 32px 24px 32px;
 }
 
-/* Two-column layout */
-.calendar-layout {
+/* Calendar + Events grid */
+.calendar-events-grid {
   display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 24px;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 32px;
+  align-items: start;
 }
-
-.calendar-pane {
-  border-right: 1px solid #f0f0f0;
-  padding-right: 16px;
-  overflow-y: auto;
-}
-
-.details-pane {
-  overflow-y: auto;
-  padding-right: 8px;
-  max-height: calc(86vh - 120px);
-}
-
-/* Calendar UI Enhancements */
-.calendar-ui-section {
-  margin-bottom: 16px;
+.events-pane {
   background: #faf8f6;
-  border-radius: 16px;
+  border: 1px dashed #e6ddd4;
+  border-radius: 12px;
   padding: 16px;
-  border: 1px solid #e6ddd4;
 }
-
-.calendar-ui-header {
-  text-align: center;
-  margin-bottom: 8px;
-}
-
-.calendar-ui-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #b8956a;
-  letter-spacing: 0.5px;
-}
-
-.custom-calendar {
-  border-radius: 12px;
-  border: 1px solid #e6ddd4;
-  padding: 8px;
-  background: #fff;
-  width: 100%;
-}
-
-.custom-calendar .react-calendar__tile {
-  border-radius: 8px;
-}
-
-.custom-calendar .react-calendar__tile--active,
-.custom-calendar .react-calendar__tile:focus {
-  background: linear-gradient(135deg, #d4a574 0%, #b8956a 100%);
-  color: #fff;
-}
-
-.event-date-highlight {
-  background: #f6efe7 !important;
-  color: inherit !important;
-  position: relative;
-}
-
-.event-dot {
-  width: 6px;
-  height: 6px;
-  background: #d4a574;
-  border-radius: 50%;
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* DayPicker (shadcn-like) */
-.rdp-root .rdp {
-  --rdp-accent-color: #d4a574;
-  --rdp-background-color: #faf8f6;
-  --rdp-outline: 2px solid rgba(212, 165, 116, 0.35);
-  margin: 0;
-}
-
-.rdp-root .rdp-months {
-  gap: 8px;
-}
-
-.rdp-root .rdp-month {
-  background: #fff;
-  border: 1px solid #e6ddd4;
-  border-radius: 12px;
-  padding: 8px;
-}
-
-.rdp-root .rdp-caption {
-  padding: 8px;
-}
-
-.rdp-root .rdp-nav button,
-.rdp-root .rdp-dropdown select {
-  border-radius: 8px;
-}
-
-.rdp-root .rdp-day {
-  border-radius: 8px;
-  position: relative;
-}
-
-.rdp-root .rdp-day:hover {
-  background: #f6efe7;
-}
-
-.rdp-root .rdp-day[aria-selected='true'] {
-  background: linear-gradient(135deg, #d4a574 0%, #b8956a 100%);
-  color: #fff;
-}
-
-.rdp-root .rdp-day_hasEvent::after {
-  content: '';
-  width: 6px;
-  height: 6px;
-  background: #d4a574;
-  border-radius: 50%;
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.calendar-quick-actions {
+.events-pane-header {
   display: flex;
-  gap: 8px;
-}
-
-.btn-secondary.small {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #e6ddd4;
-  background: #faf8f6;
-  color: #6b6358;
-  font-size: 13px;
-}
-
-.details-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
-
-.details-title {
+.events-pane-header h3 {
   margin: 0;
   color: #2c3e50;
   font-size: 18px;
   font-weight: 600;
 }
-
-.details-subtitle {
+.events-count {
+  display: inline-block;
+  margin-top: 4px;
+  color: #6b6358;
   font-size: 12px;
+}
+.empty-events-card {
+  text-align: center;
   color: #6c757d;
-}
-
-.details-actions {
-  display: flex;
-  align-items: center;
-}
-
-/* Remove default blue focus outlines within modal */
-.modal-content :focus,
-.modal-content :focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-/* DayPicker focus states */
-.rdp-root .rdp button:focus,
-.rdp-root .rdp button:focus-visible,
-.rdp-root .rdp .rdp-day:focus,
-.rdp-root .rdp .rdp-day:focus-visible,
-.rdp-root .rdp .rdp-nav button:focus,
-.rdp-root .rdp .rdp-dropdown select:focus {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-/* Stronger modal-scoped focus reset for DayPicker day buttons (covers browser-specific rings) */
-.modal-content *:focus,
-.modal-content *:focus-visible {
-  outline: none !important;
-  outline-color: transparent !important;
-  box-shadow: none !important;
-  -webkit-box-shadow: none !important;
-}
-
-/* Highly-specific selectors to override browser focus rings on DayPicker day buttons */
-.modal-content .rdp-root .rdp .rdp-day:focus,
-.modal-content .rdp-root .rdp .rdp-day:focus-visible,
-.modal-content .rdp-root .rdp button:focus,
-.modal-content .rdp-root .rdp button:focus-visible,
-.modal-content .rdp-root .rdp .rdp-day_selected:focus,
-.modal-content .rdp-root .rdp .rdp-day_selected:focus-visible {
-  outline: none !important;
-  outline-offset: 0 !important;
-  box-shadow: 0 0 0 0 transparent !important;
-  -webkit-box-shadow: 0 0 0 0 transparent !important;
-  border-color: transparent !important;
-}
-
-/* Remove inner focus ring for Firefox */
-.modal-content .rdp-root .rdp button::-moz-focus-inner {
-  border: 0 !important;
-}
-
-@media (max-width: 900px) {
-  .calendar-layout {
-    grid-template-columns: 1fr;
-  }
-  .calendar-pane {
-    border-right: none;
-    padding-right: 0;
-  }
-  .details-pane {
-    max-height: none;
-  }
+  font-style: italic;
+  padding: 28px 16px;
+  background: #fff;
+  border-radius: 12px;
+  border: 2px dashed #dee2e6;
 }
 /* Calendar UI Enhancements */
 .calendar-ui-section {
@@ -754,12 +627,51 @@ body {
   background: linear-gradient(135deg, #d4a574 0%, #b8956a 100%);
   color: #fff;
 }
-.event-date-highlight {
-  background: #d4a574 !important;
-  color: #fff !important;
-  font-weight: 600;
+.custom-calendar .react-calendar__tile--active:enabled:hover,
+.custom-calendar .react-calendar__tile--active:enabled:focus {
+  background: linear-gradient(135deg, #d4a574 0%, #b8956a 100%);
+  color: #fff;
+}
+.custom-calendar .react-calendar__tile:enabled:hover,
+.custom-calendar .react-calendar__tile:enabled:focus {
+  background: #f7f5f3;
+  color: #4a453f;
+}
+.custom-calendar .react-calendar__tile:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.3);
+}
+.custom-calendar .react-calendar__tile--now {
+  background: #f2ede6;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(212, 165, 116, 0.15);
+}
+.custom-calendar .react-calendar__month-view__weekdays__weekday {
+  color: #6b6358;
+}
+.custom-calendar .react-calendar__month-view__weekdays__weekday abbr[title] {
+  text-decoration: none;
+}
+.custom-calendar .react-calendar__navigation button {
+  color: #4a453f;
+  font-weight: 600;
+}
+.custom-calendar .react-calendar__navigation button:enabled:hover,
+.custom-calendar .react-calendar__navigation button:enabled:focus {
+  background: #f7f5f3;
+  color: #4a453f;
+  outline: none;
+}
+.event-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: #d4a574;
+  border-radius: 50%;
+  margin: 3px auto 0;
+}
+.event-date-highlight {
+  box-shadow: inset 0 0 0 2px rgba(212, 165, 116, 0.6);
+  border-radius: 8px;
 }
 
 .calendar-header {
@@ -940,6 +852,9 @@ body {
 }
 
 @media (max-width: 480px) {
+  .calendar-events-grid {
+    grid-template-columns: 1fr;
+  }
   .hero-section {
     height: 150px;
   }

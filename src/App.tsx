@@ -1,7 +1,7 @@
-import './App.css';
 import { useState } from 'react';
-import Calendar from './components/ui/Calendar';
-import 'react-day-picker/dist/style.css';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import './App.css';
 import { 
   MdDateRange, 
   MdPhotoLibrary, 
@@ -47,13 +47,19 @@ function App() {
   ]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', date: '', time: '', location: '' });
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
+  const selectedDateStr = selectedDate ? selectedDate.toISOString().slice(0, 10) : '';
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
-    setIsModalOpen(false);
-    setShowAddForm(false);
-    setNewEvent({ title: '', date: '', time: '', location: '' });
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsModalOpen(false);
+      setIsClosing(false);
+      setShowAddForm(false);
+      setNewEvent({ title: '', date: '', time: '', location: '' });
+    }, 200);
   };
 
   const handleAddEvent = () => {
@@ -70,25 +76,6 @@ function App() {
       setShowAddForm(false);
     }
   };
-
-  const toISODate = (date: Date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  };
-
-  const formatFullDateLabel = (date: Date) =>
-    date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-
-  const filteredEvents = selectedDate
-    ? events.filter((e) => e.date === toISODate(selectedDate))
-    : events;
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -289,8 +276,8 @@ function App() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className={`modal-overlay ${isClosing ? 'modal-overlay-closing' : ''}`} onClick={closeModal}>
+          <div className={`modal-content ${isClosing ? 'modal-content-closing' : ''}`} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Upcoming Dates</h2>
               <button className="close-button" onClick={closeModal}>
@@ -299,118 +286,68 @@ function App() {
             </div>
             
             <div className="modal-body">
-              {/* Inline, high-specificity overrides to remove remaining browser focus rings for DayPicker */}
-              <style>{`
-                .modal-content .rdp *:focus,
-                .modal-content .rdp *:focus-visible {
-                  outline: none !important;
-                  box-shadow: none !important;
-                  border-color: transparent !important;
-                }
-                .modal-content .rdp .rdp-day:focus,
-                .modal-content .rdp .rdp-day:focus-visible,
-                .modal-content .rdp .rdp-day_selected:focus,
-                .modal-content .rdp .rdp-day_selected:focus-visible {
-                  outline: none !important;
-                  box-shadow: none !important;
-                  border-color: transparent !important;
-                }
-                .modal-content .rdp .rdp-nav button,
-                .modal-content .rdp .rdp-nav button svg {
-                  color: #b8956a !important;
-                  stroke: #b8956a !important;
-                }
-                .modal-content .rdp .rdp-day[aria-selected='true'] {
-                  box-shadow: none !important;
-                }
-              `}</style>
-              <div className="calendar-layout">
-                <aside className="calendar-pane">
-                  <div className="calendar-ui-section">
-                    <div className="calendar-ui-header">
-                      <span className="calendar-ui-title">Select a date</span>
-                    </div>
-                    <Calendar
-                      selected={selectedDate ?? undefined}
-                      onSelect={(d) => setSelectedDate(d ?? null)}
-                      modifiers={{
-                        hasEvent: (day) => events.some((ev) => ev.date === toISODate(day)),
-                      }}
-                      footer={selectedDate ? (
-                        <div className="calendar-footer">{formatFullDateLabel(selectedDate)}</div>
-                      ) : undefined}
-                    />
+              <div className="calendar-events-grid">
+                <div className="calendar-ui-section">
+                  <div className="calendar-ui-header">
+                    <span className="calendar-ui-title">Select a date</span>
                   </div>
-                  <div className="calendar-quick-actions">
-                    <button
-                      className="btn-secondary small"
-                      onClick={() => setSelectedDate(new Date())}
-                      type="button"
-                    >
-                      Today
-                    </button>
-                    <button
-                      className="btn-secondary small"
-                      onClick={() => setSelectedDate(null)}
-                      type="button"
-                    >
-                      Show all
-                    </button>
-                  </div>
-                </aside>
-
-                <section className="details-pane">
-                  <div className="details-header">
+                  <Calendar
+                    onChange={(date) => setSelectedDate(date as Date)}
+                    value={selectedDate}
+                    className="custom-calendar"
+                    tileContent={({ date, view }) => {
+                      if (view !== 'month') return null;
+                      const dateStr = date.toISOString().slice(0, 10);
+                      const hasEvent = events.some(ev => ev.date === dateStr);
+                      return hasEvent ? <span className="event-dot" /> : null;
+                    }}
+                    tileClassName={({ date }) => {
+                      const dateStr = date.toISOString().slice(0, 10);
+                      return events.some(ev => ev.date === dateStr) ? 'event-date-highlight' : undefined;
+                    }}
+                  />
+                </div>
+                <div className="events-pane">
+                  <div className="events-pane-header">
                     <div>
-                      <h3 className="details-title">
-                        {selectedDate ? `Events for ${formatFullDateLabel(selectedDate)}` : 'All Events'}
-                      </h3>
-                      <div className="details-subtitle">
-                        {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}
-                      </div>
+                      <h3>Events for {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '…'}</h3>
+                      <span className="events-count">{selectedDate ? events.filter(e => e.date === selectedDateStr).length : events.length} {selectedDate ? 'event(s)' : 'total'}</span>
                     </div>
-                    <div className="details-actions">
-                      <button
-                        className="add-event-button"
-                        onClick={() => {
-                          setShowAddForm((prev) => !prev);
-                          if (!showAddForm) {
-                            setNewEvent((prev) => ({
-                              ...prev,
-                              date: selectedDate ? toISODate(selectedDate) : prev.date,
-                            }));
-                          }
-                        }}
-                        type="button"
-                      >
-                        <MdAdd /> Add Event
-                      </button>
-                    </div>
+                    <button 
+                      className="add-event-button"
+                      onClick={() => {
+                        setShowAddForm(!showAddForm);
+                        if (!showAddForm && selectedDateStr) {
+                          setNewEvent({ ...newEvent, date: selectedDateStr });
+                        }
+                      }}
+                    >
+                      <MdAdd /> Add Event
+                    </button>
                   </div>
-
                   {showAddForm && (
                     <div className="add-event-form">
                       <input
                         type="text"
                         placeholder="Event title"
                         value={newEvent.title}
-                        onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                        onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
                       />
                       <input
                         type="date"
                         value={newEvent.date}
-                        onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                        onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
                       />
                       <input
                         type="time"
                         value={newEvent.time}
-                        onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                        onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
                       />
                       <input
                         type="text"
                         placeholder="Location (optional)"
                         value={newEvent.location}
-                        onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                        onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
                       />
                       <div className="form-buttons">
                         <button className="save-button" onClick={handleAddEvent}>
@@ -422,14 +359,17 @@ function App() {
                       </div>
                     </div>
                   )}
-
                   <div className="events-list">
-                    {events.length === 0 ? (
-                      <p className="no-events">No events scheduled yet. Add your first event!</p>
-                    ) : filteredEvents.length === 0 ? (
-                      <p className="no-events">No events for this date.</p>
-                    ) : (
-                      filteredEvents.map((event) => (
+                    {(() => {
+                      const list = selectedDate ? events.filter(e => e.date === selectedDateStr) : events;
+                      if (list.length === 0) {
+                        return (
+                          <div className="empty-events-card">
+                            <p>No events {selectedDate ? 'for this date yet.' : 'scheduled yet.'}</p>
+                          </div>
+                        );
+                      }
+                      return list.map((event) => (
                         <div key={event.id} className="event-item">
                           <div className="event-date">
                             <div className="event-day">{formatDate(event.date)}</div>
@@ -438,12 +378,72 @@ function App() {
                           <div className="event-details">
                             <h4>{event.title}</h4>
                             {event.location && <p className="event-location">{event.location}</p>}
+                            {selectedDate && event.date === selectedDateStr && (
+                              <span style={{ color: '#d4a574', fontWeight: 500 }}>Selected</span>
+                            )}
                           </div>
                         </div>
-                      ))
-                    )}
+                      ));
+                    })()}
                   </div>
-                </section>
+                </div>
+              </div>
+
+              {showAddForm && (
+                <div className="add-event-form">
+                  <input
+                    type="text"
+                    placeholder="Event title"
+                    value={newEvent.title}
+                    onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                  />
+                  <input
+                    type="date"
+                    value={newEvent.date}
+                    onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
+                  />
+                  <input
+                    type="time"
+                    value={newEvent.time}
+                    onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Location (optional)"
+                    value={newEvent.location}
+                    onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                  />
+                  <div className="form-buttons">
+                    <button className="save-button" onClick={handleAddEvent}>
+                      Save Event
+                    </button>
+                    <button className="cancel-button" onClick={() => setShowAddForm(false)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="events-list">
+                {events.length === 0 ? (
+                  <p className="no-events">No events scheduled yet. Add your first event!</p>
+                ) : (
+                  events.map((event) => (
+                    <div key={event.id} className="event-item">
+                      <div className="event-date">
+                        <div className="event-day">{formatDate(event.date)}</div>
+                        <div className="event-time">{formatTime(event.time)}</div>
+                      </div>
+                      <div className="event-details">
+                        <h4>{event.title}</h4>
+                        {event.location && <p className="event-location">{event.location}</p>}
+                          {selectedDate && event.date === selectedDate.toISOString().slice(0, 10) && (
+                            <span style={{ color: '#d4a574', fontWeight: 500 }}>Selected</span>
+                          )}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
