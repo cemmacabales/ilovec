@@ -1,4 +1,15 @@
 import './App.css';
+import { 
+  MdDateRange, 
+  MdPhotoLibrary, 
+  MdFavorite, 
+  MdNoteAlt, 
+  MdAccountBalanceWallet, 
+  MdEmojiEvents, 
+  MdChecklist, 
+  MdStar 
+} from 'react-icons/md';
+import { FaHeart } from 'react-icons/fa';
 
 function App() {
   return (
@@ -7,7 +18,9 @@ function App() {
       <div className="hero-section">
         <div className="hero-image">
           <div className="hero-overlay">
-            <div className="heart-icon">♡</div>
+            <div className="heart-icon">
+              <FaHeart />
+            </div>
           </div>
         </div>
       </div>
@@ -17,186 +30,174 @@ function App() {
         <div className="container">
           {/* Header */}
           <div className="header">
-            <h1 className="title">My Wedding Planner</h1>
+            <h1 className="title">i love c</h1>
             <div className="categories-link">
-              <span className="categories-icon">📋</span>
+              <MdChecklist className="categories-icon" />
               <span>Categories</span>
             </div>
           </div>
 
           {/* Category Cards Grid */}
           <div className="category-grid">
-            <div className="category-card">
-              <div className="category-icon">🏛️</div>
-              <h3>Venue</h3>
+            {/* Large Cards */}
+            <div className="category-card large">
+              <div className="category-icon">
+                <MdDateRange />
+              </div>
+              <h3>Upcoming Dates</h3>
+              <p className="category-description">Events you're planning together - dinner, trips, movies</p>
               <div className="category-status">
-                <span className="status-icon">📍</span>
-                <span>Venue Selection</span>
+                <span className="status-text">3 upcoming events</span>
               </div>
             </div>
 
-            <div className="category-card">
-              <div className="category-icon">🍽️</div>
-              <h3>Caterer</h3>
+            <div className="category-card large">
+              <div className="category-icon">
+                <MdPhotoLibrary />
+              </div>
+              <h3>Gallery</h3>
+              <p className="category-description">Photo uploads of past dates with tags</p>
               <div className="category-status">
-                <span className="status-icon">👨‍🍳</span>
-                <span>Caterer</span>
+                <span className="status-text">24 memories saved</span>
               </div>
             </div>
 
-            <div className="category-card">
-              <div className="category-icon">🎨</div>
-              <h3>Decoration</h3>
+            {/* Medium Cards */}
+            <div className="category-card medium">
+              <div className="category-icon">
+                <MdFavorite />
+              </div>
+              <h3>Wishlist</h3>
+              <p className="category-description">Restaurants, movies, places to visit</p>
               <div className="category-status">
-                <span className="status-icon">🎭</span>
-                <span>Theme & Decor</span>
+                <span className="status-text">12 items</span>
               </div>
             </div>
 
-            <div className="category-card">
-              <div className="category-icon">👰</div>
-              <h3>Bride Attire</h3>
+            <div className="category-card medium">
+              <div className="category-icon">
+                <MdNoteAlt />
+              </div>
+              <h3>Notes & Journal</h3>
+              <p className="category-description">Free-form pages like Notion blocks</p>
               <div className="category-status">
-                <span className="status-icon">👗</span>
-                <span>Bride Attire</span>
+                <span className="status-text">8 entries</span>
               </div>
             </div>
 
-            <div className="category-card">
-              <div className="category-icon">💄</div>
-              <h3>Hair & Makeup</h3>
+            <div className="category-card medium">
+              <div className="category-icon">
+                <MdAccountBalanceWallet />
+              </div>
+              <h3>Budget Tracker</h3>
+              <p className="category-description">Estimated vs actual expenses</p>
               <div className="category-status">
-                <span className="status-icon">💅</span>
-                <span>Hair and Makeup</span>
+                <span className="status-text">$450 this month</span>
               </div>
             </div>
 
-            <div className="category-card">
-              <div className="category-icon">🤵</div>
-              <h3>Groom Attire</h3>
+            {/* Small Cards */}
+            <div className="category-card small">
+              <div className="category-icon">
+                <MdEmojiEvents />
+              </div>
+              <h3>Milestones</h3>
+              <p className="category-description">Relationship highlights</p>
               <div className="category-status">
-                <span className="status-icon">👔</span>
-                <span>Groom Attire</span>
+                <span className="status-text">5 milestones</span>
               </div>
             </div>
 
-            <div className="category-card">
-              <div className="category-icon">🎵</div>
-              <h3>Entertainment</h3>
+            <div className="category-card small">
+              <div className="category-icon">
+                <MdChecklist />
+              </div>
+              <h3>Shared Tasks</h3>
+              <p className="category-description">To-dos for both of you</p>
               <div className="category-status">
-                <span className="status-icon">🎤</span>
-                <span>Entertainment</span>
+                <span className="status-text">4 pending</span>
               </div>
             </div>
 
-            <div className="category-card">
-              <div className="category-icon">📸</div>
-              <h3>Photography</h3>
-              <div className="category-status">
-                <span className="status-icon">📷</span>
-                <span>Photography</span>
+            <div className="category-card small">
+              <div className="category-icon">
+                <MdStar />
               </div>
-            </div>
-
-            <div className="category-card">
-              <div className="category-icon">🖨️</div>
-              <h3>Printables</h3>
+              <h3>Favorites</h3>
+              <p className="category-description">Songs, shows, foods you enjoy</p>
               <div className="category-status">
-                <span className="status-icon">📄</span>
-                <span>Printables</span>
-              </div>
-            </div>
-
-            <div className="category-card">
-              <div className="category-icon">🎂</div>
-              <h3>Cake</h3>
-              <div className="category-status">
-                <span className="status-icon">🧁</span>
-                <span>Cake</span>
-              </div>
-            </div>
-
-            <div className="category-card">
-              <div className="category-icon">🎁</div>
-              <h3>Wedding Favor</h3>
-              <div className="category-status">
-                <span className="status-icon">🎀</span>
-                <span>Wedding Favor</span>
-              </div>
-            </div>
-
-            <div className="category-card">
-              <div className="category-icon">📋</div>
-              <h3>Others</h3>
-              <div className="category-status">
-                <span className="status-icon">📝</span>
-                <span>Other</span>
+                <span className="status-text">18 favorites</span>
               </div>
             </div>
           </div>
 
           {/* Bottom Section */}
           <div className="bottom-section">
-            {/* Save the Date */}
-            <div className="save-date-section">
-              <h2>Save the Date</h2>
-              <div className="save-date-card">
+            {/* Next Date */}
+            <div className="next-date-section">
+              <h2>Next Date</h2>
+              <div className="next-date-card">
                 <div className="date-display">
-                  <div className="date-number">24</div>
-                  <div className="date-month">NOV</div>
+                  <div className="date-number">14</div>
+                  <div className="date-month">FEB</div>
                   <div className="date-year">25</div>
                 </div>
                 <div className="date-details">
-                  <p>Save the Date</p>
-                  <p>Eva & Carl</p>
-                  <p>Scarborough</p>
+                  <h3>Dinner at Sunset Bistro</h3>
+                  <p>7:30 PM • Downtown</p>
+                  <p>Reservation confirmed ✓</p>
                 </div>
               </div>
             </div>
 
-            {/* Wedding Timeline */}
-            <div className="timeline-section">
-              <h2>Wedding Timeline</h2>
-              <div className="timeline-header">
-                <span className="timeline-icon">📅</span>
-                <span>Wedding Timeline Overview</span>
+            {/* Recent Activity */}
+            <div className="activity-section">
+              <h2>Recent Activity</h2>
+              <div className="activity-header">
+                <MdDateRange className="activity-icon" />
+                <span>Latest Updates</span>
               </div>
               
-              <div className="timeline-items">
-                <div className="timeline-item">
-                  <div className="timeline-time">11:00 AM</div>
-                  <div className="timeline-event">Bride's family</div>
-                  <div className="timeline-location">Groom</div>
+              <div className="activity-items">
+                <div className="activity-item">
+                  <div className="activity-time">2 hours ago</div>
+                  <div className="activity-event">Added new photo to Gallery</div>
+                  <div className="activity-location">Beach Trip</div>
                 </div>
                 
-                <div className="timeline-item">
-                  <div className="timeline-time">3:00 AM</div>
-                  <div className="timeline-event">Groom</div>
-                  <div className="timeline-location">Bride</div>
+                <div className="activity-item">
+                  <div className="activity-time">Yesterday</div>
+                  <div className="activity-event">Completed task: Buy movie tickets</div>
+                  <div className="activity-location">Shared Tasks</div>
                 </div>
                 
-                <div className="timeline-item">
-                  <div className="timeline-time">11:00 AM</div>
-                  <div className="timeline-event">Bride's family</div>
-                  <div className="timeline-location">Groom</div>
+                <div className="activity-item">
+                  <div className="activity-time">3 days ago</div>
+                  <div className="activity-event">Added restaurant to Wishlist</div>
+                  <div className="activity-location">Italian Cuisine</div>
                 </div>
               </div>
             </div>
 
-            {/* Welcome Section */}
-            <div className="welcome-section">
-              <h2>Welcome</h2>
-              <div className="welcome-card">
-                <div className="profile-avatar">
-                  <div className="avatar-placeholder">👤</div>
+            {/* Quick Stats */}
+            <div className="stats-section">
+              <h2>This Month</h2>
+              <div className="stats-card">
+                <div className="stat-item">
+                  <div className="stat-number">6</div>
+                  <div className="stat-label">Dates Planned</div>
                 </div>
-                <div className="welcome-details">
-                  <h3>About Me</h3>
-                  <p>ID Card</p>
-                  <p>Today's Wednesday, January 17th 2024 3:44 PM</p>
-                  <p>Have a nice day!</p>
-                  <p>🎂 Birthday: October 06, 1996</p>
-                  <p>📧 Gina</p>
+                <div className="stat-item">
+                  <div className="stat-number">$450</div>
+                  <div className="stat-label">Total Spent</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-number">12</div>
+                  <div className="stat-label">Photos Added</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-number">8</div>
+                  <div className="stat-label">Tasks Done</div>
                 </div>
               </div>
             </div>
