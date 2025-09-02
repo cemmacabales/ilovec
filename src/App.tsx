@@ -1,137 +1,208 @@
-import React, { useState, useEffect } from 'react';
-import TopBar from './components/TopBar';
-import SideRail from './components/SideRail';
-import MainContent from './components/MainContent';
-import QuickAddModal from './components/modals/QuickAddModal';
-import PageEditorDrawer from './components/drawers/PageEditorDrawer';
-import ImageLightbox from './components/modals/ImageLightbox';
-import SettingsModal from './components/modals/SettingsModal';
-import SearchModal from './components/modals/SearchModal';
-
-export type ViewType = 'calendar' | 'today' | 'pages' | 'gallery' | 'templates' | 'settings';
-
-export interface AppState {
-  currentView: ViewType;
-  isQuickAddOpen: boolean;
-  isPageEditorOpen: boolean;
-  isImageLightboxOpen: boolean;
-  isSettingsOpen: boolean;
-  isSearchOpen: boolean;
-  isSideRailCollapsed: boolean;
-  selectedDate?: Date;
-  selectedImage?: string;
-  selectedPageId?: string;
-}
+import './App.css';
 
 function App() {
-  const [state, setState] = useState<AppState>({
-    currentView: 'calendar',
-    isQuickAddOpen: false,
-    isPageEditorOpen: false,
-    isImageLightboxOpen: false,
-    isSettingsOpen: false,
-    isSearchOpen: false,
-    isSideRailCollapsed: false,
-  });
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl + K for search
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setState(prev => ({ ...prev, isSearchOpen: true }));
-      }
-      // N for new page
-      if (e.key === 'n' && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        const target = e.target as HTMLElement;
-        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
-          e.preventDefault();
-          setState(prev => ({ ...prev, isPageEditorOpen: true }));
-        }
-      }
-      // C for new event
-      if (e.key === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        const target = e.target as HTMLElement;
-        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
-          e.preventDefault();
-          setState(prev => ({ ...prev, isQuickAddOpen: true }));
-        }
-      }
-      // Escape to close modals
-      if (e.key === 'Escape') {
-        setState(prev => ({
-          ...prev,
-          isQuickAddOpen: false,
-          isPageEditorOpen: false,
-          isImageLightboxOpen: false,
-          isSettingsOpen: false,
-          isSearchOpen: false,
-        }));
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const updateState = (updates: Partial<AppState>) => {
-    setState(prev => ({ ...prev, ...updates }));
-  };
-
   return (
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
-      {/* Top Bar */}
-      <TopBar 
-        onQuickAdd={() => updateState({ isQuickAddOpen: true })}
-        onSearch={() => updateState({ isSearchOpen: true })}
-        onSettings={() => updateState({ isSettingsOpen: true })}
-        onToggleSideRail={() => updateState({ isSideRailCollapsed: !state.isSideRailCollapsed })}
-      />
-      
-      <div className="flex flex-1 overflow-hidden">
-        {/* Side Rail */}
-        <SideRail 
-          currentView={state.currentView}
-          isCollapsed={state.isSideRailCollapsed}
-          onViewChange={(view) => updateState({ currentView: view })}
-        />
-        
-        {/* Main Content */}
-        <MainContent 
-          currentView={state.currentView}
-          onQuickAdd={() => updateState({ isQuickAddOpen: true })}
-          onPageEdit={(pageId) => updateState({ isPageEditorOpen: true, selectedPageId: pageId })}
-          onImageView={(imageUrl) => updateState({ isImageLightboxOpen: true, selectedImage: imageUrl })}
-        />
+    <div className="app">
+      {/* Hero Section */}
+      <div className="hero-section">
+        <div className="hero-image">
+          <div className="hero-overlay">
+            <div className="heart-icon">♡</div>
+          </div>
+        </div>
       </div>
 
-      {/* Overlays / Modals */}
-      {state.isQuickAddOpen && (
-        <QuickAddModal onClose={() => updateState({ isQuickAddOpen: false })} />
-      )}
-      
-      {state.isPageEditorOpen && (
-        <PageEditorDrawer 
-          pageId={state.selectedPageId}
-          onClose={() => updateState({ isPageEditorOpen: false, selectedPageId: undefined })} 
-        />
-      )}
-      
-      {state.isImageLightboxOpen && state.selectedImage && (
-        <ImageLightbox 
-          imageUrl={state.selectedImage}
-          onClose={() => updateState({ isImageLightboxOpen: false, selectedImage: undefined })}
-        />
-      )}
-      
-      {state.isSettingsOpen && (
-        <SettingsModal onClose={() => updateState({ isSettingsOpen: false })} />
-      )}
-      
-      {state.isSearchOpen && (
-        <SearchModal onClose={() => updateState({ isSearchOpen: false })} />
-      )}
+      {/* Main Content */}
+      <div className="main-content">
+        <div className="container">
+          {/* Header */}
+          <div className="header">
+            <h1 className="title">My Wedding Planner</h1>
+            <div className="categories-link">
+              <span className="categories-icon">📋</span>
+              <span>Categories</span>
+            </div>
+          </div>
+
+          {/* Category Cards Grid */}
+          <div className="category-grid">
+            <div className="category-card">
+              <div className="category-icon">🏛️</div>
+              <h3>Venue</h3>
+              <div className="category-status">
+                <span className="status-icon">📍</span>
+                <span>Venue Selection</span>
+              </div>
+            </div>
+
+            <div className="category-card">
+              <div className="category-icon">🍽️</div>
+              <h3>Caterer</h3>
+              <div className="category-status">
+                <span className="status-icon">👨‍🍳</span>
+                <span>Caterer</span>
+              </div>
+            </div>
+
+            <div className="category-card">
+              <div className="category-icon">🎨</div>
+              <h3>Decoration</h3>
+              <div className="category-status">
+                <span className="status-icon">🎭</span>
+                <span>Theme & Decor</span>
+              </div>
+            </div>
+
+            <div className="category-card">
+              <div className="category-icon">👰</div>
+              <h3>Bride Attire</h3>
+              <div className="category-status">
+                <span className="status-icon">👗</span>
+                <span>Bride Attire</span>
+              </div>
+            </div>
+
+            <div className="category-card">
+              <div className="category-icon">💄</div>
+              <h3>Hair & Makeup</h3>
+              <div className="category-status">
+                <span className="status-icon">💅</span>
+                <span>Hair and Makeup</span>
+              </div>
+            </div>
+
+            <div className="category-card">
+              <div className="category-icon">🤵</div>
+              <h3>Groom Attire</h3>
+              <div className="category-status">
+                <span className="status-icon">👔</span>
+                <span>Groom Attire</span>
+              </div>
+            </div>
+
+            <div className="category-card">
+              <div className="category-icon">🎵</div>
+              <h3>Entertainment</h3>
+              <div className="category-status">
+                <span className="status-icon">🎤</span>
+                <span>Entertainment</span>
+              </div>
+            </div>
+
+            <div className="category-card">
+              <div className="category-icon">📸</div>
+              <h3>Photography</h3>
+              <div className="category-status">
+                <span className="status-icon">📷</span>
+                <span>Photography</span>
+              </div>
+            </div>
+
+            <div className="category-card">
+              <div className="category-icon">🖨️</div>
+              <h3>Printables</h3>
+              <div className="category-status">
+                <span className="status-icon">📄</span>
+                <span>Printables</span>
+              </div>
+            </div>
+
+            <div className="category-card">
+              <div className="category-icon">🎂</div>
+              <h3>Cake</h3>
+              <div className="category-status">
+                <span className="status-icon">🧁</span>
+                <span>Cake</span>
+              </div>
+            </div>
+
+            <div className="category-card">
+              <div className="category-icon">🎁</div>
+              <h3>Wedding Favor</h3>
+              <div className="category-status">
+                <span className="status-icon">🎀</span>
+                <span>Wedding Favor</span>
+              </div>
+            </div>
+
+            <div className="category-card">
+              <div className="category-icon">📋</div>
+              <h3>Others</h3>
+              <div className="category-status">
+                <span className="status-icon">📝</span>
+                <span>Other</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Section */}
+          <div className="bottom-section">
+            {/* Save the Date */}
+            <div className="save-date-section">
+              <h2>Save the Date</h2>
+              <div className="save-date-card">
+                <div className="date-display">
+                  <div className="date-number">24</div>
+                  <div className="date-month">NOV</div>
+                  <div className="date-year">25</div>
+                </div>
+                <div className="date-details">
+                  <p>Save the Date</p>
+                  <p>Eva & Carl</p>
+                  <p>Scarborough</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Wedding Timeline */}
+            <div className="timeline-section">
+              <h2>Wedding Timeline</h2>
+              <div className="timeline-header">
+                <span className="timeline-icon">📅</span>
+                <span>Wedding Timeline Overview</span>
+              </div>
+              
+              <div className="timeline-items">
+                <div className="timeline-item">
+                  <div className="timeline-time">11:00 AM</div>
+                  <div className="timeline-event">Bride's family</div>
+                  <div className="timeline-location">Groom</div>
+                </div>
+                
+                <div className="timeline-item">
+                  <div className="timeline-time">3:00 AM</div>
+                  <div className="timeline-event">Groom</div>
+                  <div className="timeline-location">Bride</div>
+                </div>
+                
+                <div className="timeline-item">
+                  <div className="timeline-time">11:00 AM</div>
+                  <div className="timeline-event">Bride's family</div>
+                  <div className="timeline-location">Groom</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Welcome Section */}
+            <div className="welcome-section">
+              <h2>Welcome</h2>
+              <div className="welcome-card">
+                <div className="profile-avatar">
+                  <div className="avatar-placeholder">👤</div>
+                </div>
+                <div className="welcome-details">
+                  <h3>About Me</h3>
+                  <p>ID Card</p>
+                  <p>Today's Wednesday, January 17th 2024 3:44 PM</p>
+                  <p>Have a nice day!</p>
+                  <p>🎂 Birthday: October 06, 1996</p>
+                  <p>📧 Gina</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
