@@ -2,14 +2,10 @@ import './App.css';
 import { 
   MdDateRange, 
   MdPhotoLibrary, 
-  MdFavorite, 
-  MdNoteAlt, 
   MdAccountBalanceWallet, 
-  MdEmojiEvents, 
-  MdChecklist, 
-  MdStar 
+  MdChecklist 
 } from 'react-icons/md';
-import { FaHeart } from 'react-icons/fa';
+import { FaMusic, FaFilm, FaListUl } from 'react-icons/fa';
 
 function App() {
   return (
@@ -18,9 +14,6 @@ function App() {
       <div className="hero-section">
         <div className="hero-image">
           <div className="hero-overlay">
-            <div className="heart-icon">
-              <FaHeart />
-            </div>
           </div>
         </div>
       </div>
@@ -30,7 +23,7 @@ function App() {
         <div className="container">
           {/* Header */}
           <div className="header">
-            <h1 className="title">i love c</h1>
+            <h1 className="title">I Love C</h1>
             <div className="categories-link">
               <MdChecklist className="categories-icon" />
               <span>Categories</span>
@@ -39,7 +32,7 @@ function App() {
 
           {/* Category Cards Grid */}
           <div className="category-grid">
-            {/* Large Cards */}
+            {/* Row 1 - Large Cards */}
             <div className="category-card large">
               <div className="category-icon">
                 <MdDateRange />
@@ -62,30 +55,30 @@ function App() {
               </div>
             </div>
 
-            {/* Medium Cards */}
-            <div className="category-card medium">
+            {/* Row 2 - Small Cards */}
+            <div className="category-card small">
               <div className="category-icon">
-                <MdFavorite />
+                <FaMusic />
               </div>
-              <h3>Wishlist</h3>
-              <p className="category-description">Restaurants, movies, places to visit</p>
+              <h3>Music Playlist</h3>
+              <p className="category-description">Shared songs and couple's soundtrack</p>
               <div className="category-status">
-                <span className="status-text">12 items</span>
+                <span className="status-text">47 songs</span>
               </div>
             </div>
 
-            <div className="category-card medium">
+            <div className="category-card small">
               <div className="category-icon">
-                <MdNoteAlt />
+                <FaFilm />
               </div>
-              <h3>Notes & Journal</h3>
-              <p className="category-description">Free-form pages like Notion blocks</p>
+              <h3>Movie Series Tracker</h3>
+              <p className="category-description">Track shows and movies to watch together</p>
               <div className="category-status">
-                <span className="status-text">8 entries</span>
+                <span className="status-text">6 in progress</span>
               </div>
             </div>
 
-            <div className="category-card medium">
+            <div className="category-card small">
               <div className="category-icon">
                 <MdAccountBalanceWallet />
               </div>
@@ -96,15 +89,14 @@ function App() {
               </div>
             </div>
 
-            {/* Small Cards */}
             <div className="category-card small">
               <div className="category-icon">
-                <MdEmojiEvents />
+                <FaListUl />
               </div>
-              <h3>Milestones</h3>
-              <p className="category-description">Relationship highlights</p>
+              <h3>Bucket List</h3>
+              <p className="category-description">Adventures and experiences to share</p>
               <div className="category-status">
-                <span className="status-text">5 milestones</span>
+                <span className="status-text">12 goals</span>
               </div>
             </div>
 
@@ -116,17 +108,6 @@ function App() {
               <p className="category-description">To-dos for both of you</p>
               <div className="category-status">
                 <span className="status-text">4 pending</span>
-              </div>
-            </div>
-
-            <div className="category-card small">
-              <div className="category-icon">
-                <MdStar />
-              </div>
-              <h3>Favorites</h3>
-              <p className="category-description">Songs, shows, foods you enjoy</p>
-              <div className="category-status">
-                <span className="status-text">18 favorites</span>
               </div>
             </div>
           </div>
