@@ -11,7 +11,6 @@ import {
   MdSearch,
   MdUpload,
   MdArrowBack,
-  MdArrowForward,
   MdGridView,
   MdViewList
 } from 'react-icons/md';

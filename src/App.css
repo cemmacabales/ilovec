@@ -1513,6 +1513,32 @@ body {
   }
 }
 
+/* Spotify Modal Styles */
+.spotify-modal {
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.spotify-player-container {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.spotify-auth {
+  text-align: center;
+  padding: 20px;
+}
+
+/* Update Music card hover effect */
+.category-card.small:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
 @media (max-width: 480px) {
   .calendar-events-grid {
     grid-template-columns: 1fr;

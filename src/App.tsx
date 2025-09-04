@@ -12,6 +12,9 @@ import {
 } from 'react-icons/md';
 import { FaMusic, FaFilm, FaListUl } from 'react-icons/fa';
 import GalleryModal from './components/GalleryModal';
+import { SpotifyProvider } from './contexts/SpotifyContext';
+import SpotifyAuth from './components/SpotifyAuth';
+import SpotifyPlayer from './components/SpotifyPlayer';
 
 interface Event {
   id: string;
@@ -24,6 +27,8 @@ interface Event {
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false);
+  const [spotifyToken, setSpotifyToken] = useState<string | null>(null);
   const [events, setEvents] = useState<Event[]>([
     {
       id: '1',
@@ -64,7 +69,22 @@ function App() {
       setNewEvent({ title: '', date: '', time: '', location: '' });
     }, 200);
   };
-  const closeGalleryModal = () => setIsGalleryModalOpen(false);
+  
+  const closeGalleryModal = () => {
+    setIsGalleryModalOpen(false);
+  };
+
+  const openSpotifyModal = () => {
+    setIsSpotifyModalOpen(true);
+  };
+
+  const closeSpotifyModal = () => {
+    setIsSpotifyModalOpen(false);
+  };
+
+  const handleTokenChange = (token: string | null) => {
+    setSpotifyToken(token);
+  };
 
   const handleAddEvent = () => {
     if (newEvent.title && newEvent.date && newEvent.time) {
@@ -101,7 +121,8 @@ function App() {
     });
   };
   return (
-    <div className="app">
+    <SpotifyProvider>
+      <div className="app">
       {/* Hero Section */}
       <div className="hero-section">
         <div className="hero-image">
@@ -148,14 +169,14 @@ function App() {
             </div>
 
             {/* Row 2 - Small Cards */}
-            <div className="category-card small">
+            <div className="category-card small" onClick={openSpotifyModal}>
               <div className="category-icon">
                 <FaMusic />
               </div>
               <h3>Music Playlist</h3>
               <p className="category-description">Shared songs and couple's soundtrack</p>
               <div className="category-status">
-                <span className="status-text">47 songs</span>
+                <span className="status-text">{spotifyToken ? 'Connected' : 'Connect Spotify'}</span>
               </div>
             </div>
 
@@ -459,7 +480,30 @@ function App() {
          isOpen={isGalleryModalOpen} 
          onClose={closeGalleryModal} 
        />
-    </div>
+
+      {/* Spotify Modal */}
+      {isSpotifyModalOpen && (
+        <div className="modal-overlay" onClick={closeSpotifyModal}>
+          <div className="modal-content spotify-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Music Player</h2>
+              <button className="close-button" onClick={closeSpotifyModal}>
+                <MdClose />
+              </button>
+            </div>
+            <div className="modal-body">
+              <SpotifyAuth onTokenChange={handleTokenChange} />
+              {spotifyToken && (
+                <div className="spotify-player-container">
+                  <SpotifyPlayer token={spotifyToken} />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+    </SpotifyProvider>
   );
 }
 
