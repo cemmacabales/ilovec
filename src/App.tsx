@@ -11,6 +11,7 @@ import {
   MdAdd
 } from 'react-icons/md';
 import { FaMusic, FaFilm, FaListUl } from 'react-icons/fa';
+import GalleryModal from './components/GalleryModal';
 
 interface Event {
   id: string;
@@ -22,6 +23,7 @@ interface Event {
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([
     {
       id: '1',
@@ -52,6 +54,7 @@ function App() {
   const selectedDateStr = selectedDate ? selectedDate.toISOString().slice(0, 10) : '';
 
   const openModal = () => setIsModalOpen(true);
+  const openGalleryModal = () => setIsGalleryModalOpen(true);
   const closeModal = () => {
     setIsClosing(true);
     setTimeout(() => {
@@ -61,6 +64,7 @@ function App() {
       setNewEvent({ title: '', date: '', time: '', location: '' });
     }, 200);
   };
+  const closeGalleryModal = () => setIsGalleryModalOpen(false);
 
   const handleAddEvent = () => {
     if (newEvent.title && newEvent.date && newEvent.time) {
@@ -132,7 +136,7 @@ function App() {
               </div>
             </div>
 
-            <div className="category-card large">
+            <div className="category-card large" onClick={openGalleryModal}>
               <div className="category-icon">
                 <MdPhotoLibrary />
               </div>
@@ -449,6 +453,12 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Gallery Modal */}
+       <GalleryModal 
+         isOpen={isGalleryModalOpen} 
+         onClose={closeGalleryModal} 
+       />
     </div>
   );
 }
