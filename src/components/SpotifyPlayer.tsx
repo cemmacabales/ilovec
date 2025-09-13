@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MdPlayArrow, MdPause, MdSkipNext, MdSkipPrevious, MdVolumeUp, MdVolumeDown, MdVolumeMute } from 'react-icons/md';
+import { MdPlayArrow, MdPause, MdSkipNext, MdSkipPrevious, MdVolumeUp, MdVolumeMute } from 'react-icons/md';
 
 interface PlayerState {
   paused: boolean;
@@ -18,7 +18,6 @@ interface SpotifyPlayerProps {
 
 const SpotifyPlayer: React.FC<SpotifyPlayerProps> = ({ token }) => {
   const [player, setPlayer] = useState<Spotify.Player | null>(null);
-  const [deviceId, setDeviceId] = useState<string>('');
   const [playerState, setPlayerState] = useState<PlayerState | null>(null);
   const [volume, setVolume] = useState<number>(0.5);
   const [isReady, setIsReady] = useState<boolean>(false);
@@ -69,7 +68,6 @@ const SpotifyPlayer: React.FC<SpotifyPlayerProps> = ({ token }) => {
       // Ready
       spotifyPlayer.addListener('ready', ({ device_id }) => {
         console.log('Spotify Player ready with Device ID:', device_id);
-        setDeviceId(device_id);
         setIsReady(true);
       });
 

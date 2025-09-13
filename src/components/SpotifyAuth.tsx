@@ -9,9 +9,21 @@ const SpotifyAuth: React.FC<SpotifyAuthProps> = ({ onTokenChange }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Spotify Web API credentials (these should be environment variables in production)
-  const CLIENT_ID = 'your_spotify_client_id'; // Replace with your Spotify app client ID
+  // Spotify Web API credentials from environment variables
+  const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
   const REDIRECT_URI = window.location.origin;
+
+  // Check if CLIENT_ID is configured
+  if (!CLIENT_ID || CLIENT_ID === 'your_spotify_client_id_here') {
+    return (
+      <div className="spotify-auth">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <strong className="font-bold">Spotify Configuration Required!</strong>
+          <span className="block sm:inline"> Please set your VITE_SPOTIFY_CLIENT_ID in the .env file.</span>
+        </div>
+      </div>
+    );
+  }
   const SCOPES = [
     'streaming',
     'user-read-email',
