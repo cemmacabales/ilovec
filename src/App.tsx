@@ -13,6 +13,8 @@ import {
 import { FaMusic, FaFilm, FaListUl } from 'react-icons/fa';
 import GalleryModal from './components/GalleryModal';
 import MusicModal from './components/MusicModal';
+import MovieSeriesModal from './components/MovieSeriesModal';
+import { WatchlistProvider } from './contexts/WatchlistContext';
 
 interface Event {
   id: string;
@@ -26,6 +28,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   const [isMusicModalOpen, setIsMusicModalOpen] = useState(false);
+  const [isMovieModalOpen, setIsMovieModalOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([
     {
       id: '1',
@@ -74,6 +77,9 @@ function App() {
   const openMusicModal = () => setIsMusicModalOpen(true);
   const closeMusicModal = () => setIsMusicModalOpen(false);
 
+  const openMovieModal = () => setIsMovieModalOpen(true);
+  const closeMovieModal = () => setIsMovieModalOpen(false);
+
 
 
   const handleAddEvent = () => {
@@ -111,6 +117,7 @@ function App() {
     });
   };
   return (
+    <WatchlistProvider>
       <div className="app">
       {/* Hero Section */}
       <div className="hero-section">
@@ -169,7 +176,7 @@ function App() {
               </div>
             </div>
 
-            <div className="category-card small">
+            <div className="category-card small" onClick={openMovieModal} style={{ cursor: 'pointer' }}>
               <div className="category-icon">
                 <FaFilm />
               </div>
@@ -476,8 +483,15 @@ function App() {
          onClose={closeMusicModal} 
        />
 
+      {/* Movie Series Modal */}
+       <MovieSeriesModal 
+         isOpen={isMovieModalOpen} 
+         onClose={closeMovieModal} 
+       />
+
       </div>
-  );
+    </WatchlistProvider>
+    );
 }
 
 export default App;
