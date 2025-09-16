@@ -85,18 +85,6 @@ const MusicModal: React.FC<MusicModalProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
           </div>
-
-          <div className="music-note">
-            <p style={{ 
-              textAlign: 'center', 
-              color: '#6b6358', 
-              fontSize: '13px', 
-              fontStyle: 'italic',
-              margin: '16px 0 0 0'
-            }}>
-              💝 "mylove" - Your shared playlist is now ready to play!
-            </p>
-          </div>
         </div>
       </div>
     </div>

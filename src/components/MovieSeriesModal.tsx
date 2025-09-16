@@ -23,7 +23,6 @@ const MovieSeriesModal: React.FC<MovieSeriesModalProps> = ({ isOpen, onClose }) 
   const [popularItems, setPopularItems] = useState<(TMDBMovie | TMDBTVShow)[]>([]);
 
   const { 
-    state: watchlistState, 
     addToWatchlist, 
     removeFromWatchlist, 
     updateItem,
@@ -98,7 +97,7 @@ const MovieSeriesModal: React.FC<MovieSeriesModalProps> = ({ isOpen, onClose }) 
 
   const handleAddToWatchlist = (item: TMDBMovie | TMDBTVShow) => {
     const isMovie = 'title' in item;
-    const title = isMovie ? item.title : item.name;
+    const title = isMovie ? (item.title || 'Unknown Title') : (item.name || 'Unknown Title');
     
     addToWatchlist({
       tmdbId: item.id,
@@ -131,7 +130,7 @@ const MovieSeriesModal: React.FC<MovieSeriesModalProps> = ({ isOpen, onClose }) 
 
   const renderMediaItem = (item: TMDBMovie | TMDBTVShow) => {
     const isMovie = 'title' in item;
-    const title = isMovie ? item.title : item.name;
+    const title = isMovie ? (item.title || 'Unknown Title') : (item.name || 'Unknown Title');
     const releaseDate = isMovie ? item.release_date : item.first_air_date;
     const year = releaseDate ? tmdbService.getYear(releaseDate) : 'Unknown';
     const posterUrl = tmdbService.getImageUrl(item.poster_path, 'w342');
@@ -158,7 +157,7 @@ const MovieSeriesModal: React.FC<MovieSeriesModalProps> = ({ isOpen, onClose }) 
           <p className="media-year">{year}</p>
           <div className="media-rating">
             <MdStar className="star-icon" />
-            <span>{item.vote_average.toFixed(1)}</span>
+            <span>{item.vote_average ? item.vote_average.toFixed(1) : 'N/A'}</span>
           </div>
           
           <div className="media-actions">
@@ -343,7 +342,7 @@ const MovieSeriesModal: React.FC<MovieSeriesModalProps> = ({ isOpen, onClose }) 
                 <div className="loading-state">Loading...</div>
               ) : (
                 <div className="media-grid">
-                  {displayItems.map(renderMediaItem)}
+                  {displayItems.filter(item => item && item.id).map(renderMediaItem)}
                 </div>
               )}
             </>
