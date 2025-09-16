@@ -12,6 +12,7 @@ import {
 } from 'react-icons/md';
 import { FaMusic, FaFilm, FaListUl } from 'react-icons/fa';
 import GalleryModal from './components/GalleryModal';
+import MusicModal from './components/MusicModal';
 
 interface Event {
   id: string;
@@ -24,6 +25,7 @@ interface Event {
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  const [isMusicModalOpen, setIsMusicModalOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([
     {
       id: '1',
@@ -68,6 +70,9 @@ function App() {
   const closeGalleryModal = () => {
     setIsGalleryModalOpen(false);
   };
+
+  const openMusicModal = () => setIsMusicModalOpen(true);
+  const closeMusicModal = () => setIsMusicModalOpen(false);
 
 
 
@@ -153,14 +158,14 @@ function App() {
             </div>
 
             {/* Row 2 - Small Cards */}
-            <div className="category-card small">
+            <div className="category-card small" onClick={openMusicModal} style={{ cursor: 'pointer' }}>
               <div className="category-icon">
                 <FaMusic />
               </div>
               <h3>Music Playlist</h3>
               <p className="category-description">Shared songs and couple's soundtrack</p>
               <div className="category-status">
-                <span className="status-text">Coming Soon</span>
+                <span className="status-text">Apple Music Player</span>
               </div>
             </div>
 
@@ -465,6 +470,11 @@ function App() {
          onClose={closeGalleryModal} 
        />
 
+      {/* Music Modal */}
+       <MusicModal 
+         isOpen={isMusicModalOpen} 
+         onClose={closeMusicModal} 
+       />
 
       </div>
   );

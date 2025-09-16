@@ -1603,3 +1603,105 @@ body {
     max-height: 85vh;
   }
 }
+
+/* Music Modal Styles */
+.music-modal {
+  max-width: 800px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.music-header-left h2 {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  color: #2c3e50;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.music-body {
+  padding: 24px;
+}
+
+.music-description {
+  margin-bottom: 24px;
+}
+
+.music-intro {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: #faf8f6;
+  border-radius: 12px;
+  border: 1px solid #e6ddd4;
+}
+
+.apple-music-container {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 16px;
+}
+
+.music-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.feature-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.feature-card h4 {
+  margin: 0 0 4px 0;
+  color: #2c3e50;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.feature-card p {
+  margin: 0;
+  color: #6b6358;
+  font-size: 14px;
+}
+
+.music-note {
+  margin-top: 20px;
+  padding: 12px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .music-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .music-features {
+    grid-template-columns: 1fr;
+  }
+  
+  .apple-music-container iframe {
+    height: 350px;
+  }
+}
