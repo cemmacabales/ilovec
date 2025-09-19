@@ -14,7 +14,9 @@ import { FaMusic, FaFilm, FaListUl } from 'react-icons/fa';
 import GalleryModal from './components/GalleryModal';
 import MusicModal from './components/MusicModal';
 import MovieSeriesModal from './components/MovieSeriesModal';
+import BudgetModal from './components/BudgetModal';
 import { WatchlistProvider } from './contexts/WatchlistContext';
+import { BudgetProvider, useBudget } from './contexts/BudgetContext';
 
 interface Event {
   id: string;
@@ -24,11 +26,22 @@ interface Event {
   location?: string;
 }
 
-function App() {
+function AppContent() {
+  const { settings, getTotalSpentThisMonth } = useBudget();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: settings.currency || 'PHP'
+    }).format(amount);
+  };
+
+  const totalSpent = getTotalSpentThisMonth();
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   const [isMusicModalOpen, setIsMusicModalOpen] = useState(false);
   const [isMovieModalOpen, setIsMovieModalOpen] = useState(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([
     {
       id: '1',
@@ -80,6 +93,9 @@ function App() {
   const openMovieModal = () => setIsMovieModalOpen(true);
   const closeMovieModal = () => setIsMovieModalOpen(false);
 
+  const openBudgetModal = () => setIsBudgetModalOpen(true);
+  const closeBudgetModal = () => setIsBudgetModalOpen(false);
+
 
 
   const handleAddEvent = () => {
@@ -117,8 +133,7 @@ function App() {
     });
   };
   return (
-    <WatchlistProvider>
-      <div className="app">
+    <div className="app">
       {/* Hero Section */}
       <div className="hero-section">
         <div className="hero-image">
@@ -187,14 +202,14 @@ function App() {
               </div>
             </div>
 
-            <div className="category-card small">
+            <div className="category-card small" onClick={openBudgetModal} style={{ cursor: 'pointer' }}>
               <div className="category-icon">
                 <MdAccountBalanceWallet />
               </div>
               <h3>Budget Tracker</h3>
               <p className="category-description">Estimated vs actual expenses</p>
               <div className="category-status">
-                <span className="status-text">$450 this month</span>
+                <span className="status-text">{formatCurrency(totalSpent)} this month</span>
               </div>
             </div>
 
@@ -278,7 +293,7 @@ function App() {
                   <div className="stat-label">Dates Planned</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-number">$450</div>
+                  <div className="stat-number">{formatCurrency(totalSpent)}</div>
                   <div className="stat-label">Total Spent</div>
                 </div>
                 <div className="stat-item">
@@ -489,9 +504,24 @@ function App() {
          onClose={closeMovieModal} 
        />
 
-      </div>
+      {/* Budget Modal */}
+        <BudgetModal 
+          isOpen={isBudgetModalOpen} 
+          onClose={closeBudgetModal} 
+        />
+
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <WatchlistProvider>
+      <BudgetProvider>
+        <AppContent />
+      </BudgetProvider>
     </WatchlistProvider>
-    );
+  );
 }
 
 export default App;
