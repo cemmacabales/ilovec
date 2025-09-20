@@ -15,8 +15,10 @@ import GalleryModal from './components/GalleryModal';
 import MusicModal from './components/MusicModal';
 import MovieSeriesModal from './components/MovieSeriesModal';
 import BudgetModal from './components/BudgetModal';
+import BucketListModal from './components/BucketListModal';
 import { WatchlistProvider } from './contexts/WatchlistContext';
 import { BudgetProvider, useBudget } from './contexts/BudgetContext';
+import { BucketListProvider } from './contexts/BucketListContext';
 
 interface Event {
   id: string;
@@ -42,6 +44,7 @@ function AppContent() {
   const [isMusicModalOpen, setIsMusicModalOpen] = useState(false);
   const [isMovieModalOpen, setIsMovieModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [isBucketListModalOpen, setIsBucketListModalOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([
     {
       id: '1',
@@ -95,6 +98,9 @@ function AppContent() {
 
   const openBudgetModal = () => setIsBudgetModalOpen(true);
   const closeBudgetModal = () => setIsBudgetModalOpen(false);
+
+  const openBucketListModal = () => setIsBucketListModalOpen(true);
+  const closeBucketListModal = () => setIsBucketListModalOpen(false);
 
 
 
@@ -213,7 +219,7 @@ function AppContent() {
               </div>
             </div>
 
-            <div className="category-card small">
+            <div className="category-card small" onClick={openBucketListModal} style={{ cursor: 'pointer' }}>
               <div className="category-icon">
                 <FaListUl />
               </div>
@@ -510,6 +516,12 @@ function AppContent() {
           onClose={closeBudgetModal} 
         />
 
+      {/* Bucket List Modal */}
+        <BucketListModal 
+          isOpen={isBucketListModalOpen} 
+          onClose={closeBucketListModal} 
+        />
+
     </div>
   );
 }
@@ -518,7 +530,9 @@ function App() {
   return (
     <WatchlistProvider>
       <BudgetProvider>
-        <AppContent />
+        <BucketListProvider>
+          <AppContent />
+        </BucketListProvider>
       </BudgetProvider>
     </WatchlistProvider>
   );

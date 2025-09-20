@@ -608,24 +608,26 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
             <div className="expenses-view">
               <div className="expenses-controls">
                 <div className="search-filter-bar">
-                  <div className="search-bar">
-                    <MdSearch className="search-icon" />
-                    <input
-                      type="text"
-                      placeholder="Search expenses..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                  <div className="search-filter-group">
+                    <div className="search-bar">
+                      <MdSearch className="search-icon" />
+                      <input
+                        type="text"
+                        placeholder="Search expenses..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    <select
+                      value={filterCategory}
+                      onChange={(e) => setFilterCategory(e.target.value as ExpenseCategory | 'all')}
+                    >
+                      <option value="all">All Categories</option>
+                      {categories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
                   </div>
-                  <select
-                    value={filterCategory}
-                    onChange={(e) => setFilterCategory(e.target.value as ExpenseCategory | 'all')}
-                  >
-                    <option value="all">All Categories</option>
-                    {categories.map(category => (
-                      <option key={category} value={category}>{category}</option>
-                    ))}
-                  </select>
                   <button 
                     className="add-expense-btn"
                     onClick={() => setShowAddExpense(true)}
