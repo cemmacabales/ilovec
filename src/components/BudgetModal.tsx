@@ -956,7 +956,11 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
 
           {/* Add Expense Modal */}
           {showAddExpense && (
-            <div className="add-form-overlay" onClick={() => setShowAddExpense(false)}>
+            <div className="add-form-overlay" onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowAddExpense(false);
+              }
+            }}>
               <div className="add-form" onClick={(e) => e.stopPropagation()}>
                 <h3>Add New Expense</h3>
                 <div className="form-grid">
@@ -1018,7 +1022,11 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
 
           {/* Add Budget Modal */}
           {showAddBudget && (
-            <div className="add-form-overlay" onClick={() => setShowAddBudget(false)}>
+            <div className="add-form-overlay" onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowAddBudget(false);
+              }
+            }}>
               <div className="add-form" onClick={(e) => e.stopPropagation()}>
                 <h3>Add New Budget</h3>
                 <div className="form-grid">
@@ -1063,7 +1071,11 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
 
           {/* Add Goal Modal */}
           {showAddGoal && (
-            <div className="add-form-overlay" onClick={() => setShowAddGoal(false)}>
+            <div className="add-form-overlay" onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowAddGoal(false);
+              }
+            }}>
               <div className="add-form" onClick={(e) => e.stopPropagation()}>
                 <h3>Add Savings Goal</h3>
                 <div className="form-grid">
@@ -1126,7 +1138,11 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
 
           {/* Edit Expense Modal */}
           {showEditExpense && editingExpense && (
-            <div className="add-form-overlay" onClick={() => setShowEditExpense(false)}>
+            <div className="add-form-overlay" onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowEditExpense(false);
+              }
+            }}>
               <div className="add-form" onClick={(e) => e.stopPropagation()}>
                 <h3>Edit Expense</h3>
                 <div className="form-grid">
@@ -1188,7 +1204,11 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
 
           {/* Edit Budget Modal */}
           {showEditBudget && editingBudget && (
-            <div className="add-form-overlay" onClick={() => setShowEditBudget(false)}>
+            <div className="add-form-overlay" onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowEditBudget(false);
+              }
+            }}>
               <div className="add-form" onClick={(e) => e.stopPropagation()}>
                 <h3>Edit Budget</h3>
                 <div className="form-grid">
@@ -1243,7 +1263,11 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
 
           {/* Edit Goal Modal */}
           {showEditGoal && editingGoal && (
-            <div className="add-form-overlay" onClick={() => setShowEditGoal(false)}>
+            <div className="add-form-overlay" onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowEditGoal(false);
+              }
+            }}>
               <div className="add-form" onClick={(e) => e.stopPropagation()}>
                 <h3>Edit Savings Goal</h3>
                 <div className="form-grid">
@@ -1313,9 +1337,13 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Confirmation Dialog */}
+          {/* Confirm Dialog */}
           {showConfirmDialog && (
-            <div className="add-form-overlay" onClick={() => setShowConfirmDialog(false)}>
+            <div className="add-form-overlay" onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowConfirmDialog(false);
+              }
+            }}>
               <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
                 <div className="confirm-header">
                   <MdWarning className="warning-icon" />
