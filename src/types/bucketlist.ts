@@ -23,7 +23,6 @@ export interface BucketListItem {
   prerequisites?: string[];
   resources?: Resource[];
   milestones: Milestone[];
-  achievements: Achievement[];
   reminderDate?: Date;
   isArchived: boolean;
   isFavorite: boolean;
@@ -56,14 +55,7 @@ export interface Milestone {
   progress: number;
 }
 
-export interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  earnedDate: Date;
-  type: AchievementType;
-}
+
 
 export interface BucketListStats {
   totalItems: number;
@@ -145,17 +137,7 @@ export type Difficulty = 'easy' | 'medium' | 'hard' | 'extreme';
 
 export type ResourceType = 'website' | 'book' | 'video' | 'course' | 'contact' | 'document' | 'other';
 
-export type AchievementType = 
-  | 'first_item'
-  | 'first_completion'
-  | 'streak_milestone'
-  | 'category_master'
-  | 'cost_saver'
-  | 'early_bird'
-  | 'overachiever'
-  | 'explorer'
-  | 'persistent'
-  | 'organized';
+
 
 export type ViewMode = 'grid' | 'list' | 'timeline' | 'kanban';
 

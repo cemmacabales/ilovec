@@ -9,13 +9,10 @@ import type {
   BucketListRecommendation,
   SubGoal,
   Milestone,
-  Achievement,
   Priority,
   BucketListCategory,
   ItemStatus,
-  SortOption,
-  RecommendationType,
-  MonthlyProgress
+  SortOption
 } from '../types/bucketlist';
 
 interface BucketListState {
@@ -186,9 +183,6 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
       updatedDate: new Date(),
     };
     dispatch({ type: 'ADD_ITEM', payload: newItem });
-    
-    // Check for achievements
-    checkAchievements(newItem, state.items);
   };
 
   const updateItem = (id: string, updates: Partial<BucketListItem>) => {
@@ -210,7 +204,6 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
         completedDate: undefined,
         subGoals: item.subGoals.map(sg => ({ ...sg, id: generateId(), isCompleted: false })),
         milestones: item.milestones.map(m => ({ ...m, id: generateId(), isCompleted: false })),
-        achievements: [],
       };
       addItem(duplicatedItem);
     }
@@ -346,26 +339,7 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
     dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
   };
 
-  // Achievement system
-  const checkAchievements = (newItem: BucketListItem, existingItems: BucketListItem[]) => {
-    const achievements: Achievement[] = [];
-    
-    // First item achievement
-    if (existingItems.length === 0) {
-      achievements.push({
-        id: generateId(),
-        title: 'First Step',
-        description: 'Added your first bucket list item!',
-        icon: '🎯',
-        earnedDate: new Date(),
-        type: 'first_item',
-      });
-    }
-    
-    if (achievements.length > 0) {
-      updateItem(newItem.id, { achievements });
-    }
-  };
+
 
   // Computed values
   const filteredItems = useMemo(() => {

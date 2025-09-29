@@ -30,7 +30,7 @@ interface BudgetModalProps {
   onClose: () => void;
 }
 
-type ViewMode = 'overview' | 'expenses' | 'budgets' | 'analytics' | 'goals' | 'settings';
+type ViewMode = 'overview' | 'expenses' | 'budgets' | 'goals' | 'settings';
 
 const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
   const [isClosing, setIsClosing] = useState(false);
@@ -405,12 +405,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
               >
                 <MdGpsFixed /> Budgets
               </button>
-              <button 
-                className={`view-btn ${currentView === 'analytics' ? 'active' : ''}`}
-                onClick={() => setCurrentView('analytics')}
-              >
-                <MdShowChart /> Analytics
-              </button>
+
               <button 
                 className={`view-btn ${currentView === 'goals' ? 'active' : ''}`}
                 onClick={() => setCurrentView('goals')}
@@ -595,9 +590,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
                     <button onClick={() => setShowAddGoal(true)}>
                       <MdSavings /> Add Goal
                     </button>
-                    <button onClick={() => setCurrentView('analytics')}>
-                      <MdShowChart /> View Reports
-                    </button>
+
                   </div>
                 </div>
               </div>
@@ -816,74 +809,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {currentView === 'analytics' && (
-            <div className="analytics-view">
-              <div className="analytics-controls">
-                <h3>Financial Analytics</h3>
-                <div className="analytics-filters">
-                  <select>
-                    <option value="month">This Month</option>
-                    <option value="quarter">This Quarter</option>
-                    <option value="year">This Year</option>
-                  </select>
-                  <button className="export-btn">
-                    <MdFileDownload /> Export Report
-                  </button>
-                </div>
-              </div>
 
-              <div className="analytics-grid">
-                <div className="analytics-card">
-                  <h4><MdTrendingUp /> Spending Trends</h4>
-                  <div className="trend-chart">
-                    <p>Monthly spending trend visualization would go here</p>
-                  </div>
-                </div>
-
-                <div className="analytics-card">
-                  <h4><MdPieChart /> Category Breakdown</h4>
-                  <div className="category-breakdown">
-                    {categories.map(category => {
-                      const categoryExpenses = getExpensesByCategory(category);
-                      const total = categoryExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-                      const percentage = totalSpentThisMonth > 0 ? (total / totalSpentThisMonth) * 100 : 0;
-                      
-                      return total > 0 ? (
-                        <div key={category} className="category-item">
-                          <span className="category-name">{category}</span>
-                          <span className="category-amount">{formatCurrency(total)}</span>
-                          <span className="category-percentage">{percentage.toFixed(1)}%</span>
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-
-                <div className="analytics-card">
-                  <h4><MdShowChart /> Budget Performance</h4>
-                  <div className="budget-performance">
-                    {budgets.map(budget => {
-                      const spent = getExpensesByCategory(budget.category).reduce((sum, exp) => sum + exp.amount, 0);
-                      const utilization = (spent / budget.monthlyLimit) * 100;
-                      
-                      return (
-                        <div key={budget.id} className="performance-item">
-                          <span className="budget-name">{budget.category}</span>
-                          <div className="performance-bar">
-                            <div 
-                              className={`performance-fill ${utilization > 100 ? 'over' : utilization > budget.alertThreshold ? 'warning' : 'good'}`}
-                              style={{ width: `${Math.min(utilization, 100)}%` }}
-                            ></div>
-                          </div>
-                          <span className="performance-text">{utilization.toFixed(1)}%</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {currentView === 'settings' && (
             <div className="settings-view">

@@ -8,7 +8,8 @@ import {
   MdAccountBalanceWallet, 
   MdChecklist,
   MdClose,
-  MdAdd
+  MdAdd,
+  MdCheck
 } from 'react-icons/md';
 import { FaMusic, FaFilm, FaListUl } from 'react-icons/fa';
 import GalleryModal from './components/GalleryModal';
@@ -256,7 +257,7 @@ function AppContent() {
                 <div className="date-details">
                   <h3>Dinner at Sunset Bistro</h3>
                   <p>7:30 PM • Downtown</p>
-                  <p>Reservation confirmed ✓</p>
+                  <p>Reservation confirmed <MdCheck /></p>
                 </div>
               </div>
             </div>

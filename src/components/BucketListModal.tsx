@@ -1,25 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   MdClose,
   MdAdd,
   MdEdit,
   MdDelete,
   MdSearch,
-  MdFilterList,
-  MdSort,
   MdViewList,
   MdViewModule,
-  MdCalendarToday,
-  MdAttachMoney,
   MdAccessTime,
   MdLocalFireDepartment,
-  MdTrendingUp,
-  MdEmojiEvents,
-  MdRocket,
   MdStar,
   MdGpsFixed,
-  MdDiamond,
-  MdFormatQuote,
   MdFlightTakeoff,
   MdTerrain,
   MdSchool,
@@ -33,14 +24,14 @@ import {
   MdSelfImprovement,
   MdDescription,
   MdAssessment,
-  MdCheckCircle,
-  MdBarChart,
   MdTimeline,
-  MdFlashOn,
   MdList,
   MdWarning,
   MdSettings,
-  MdFavoriteBorder
+  MdFavoriteBorder,
+  MdCheck,
+  MdRadioButtonUnchecked,
+  MdCelebration
 } from 'react-icons/md';
 import { useBucketList } from '../contexts/BucketListContext';
 import type {
@@ -61,11 +52,8 @@ interface BucketListModalProps {
 export default function BucketListModal({ isOpen, onClose }: BucketListModalProps) {
   const {
     items,
-    filteredItems,
-    filters,
     settings,
     stats,
-    setFilters,
     clearFilters,
     setSortBy,
     updateSettings,
@@ -73,13 +61,10 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
     updateItem,
     deleteItem,
     toggleFavorite,
-    updateProgress,
-    getInsights,
-    getRecommendations
+    updateProgress
   } = useBucketList();
 
-  const [activeTab, setActiveTab] = useState<'items' | 'analytics' | 'settings'>('items');
-  const [analyticsView, setAnalyticsView] = useState<'overview' | 'timeline' | 'motivation'>('overview');
+  const [activeTab, setActiveTab] = useState<'items' | 'settings'>('items');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<BucketListCategory | ''>('');
   const [selectedPriority, setSelectedPriority] = useState<Priority | ''>('');
@@ -88,7 +73,7 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState<BucketListItem | null>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
-  const [viewMode, setViewMode] = useState<ViewMode>(settings.viewMode);
+  const [viewMode] = useState<ViewMode>(settings.viewMode);
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
 
   // Apply filters locally without using setFilters to avoid infinite loops
@@ -121,8 +106,7 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
     return filtered;
   }, [items, searchTerm, selectedCategory, selectedPriority, selectedStatus, selectedDifficulty]);
 
-  const insights = useMemo(() => getInsights(), [getInsights]);
-  const recommendations = useMemo(() => getRecommendations(), [getRecommendations]);
+
 
   const categories: BucketListCategory[] = [
     'travel', 'adventure', 'learning', 'career', 'health', 'relationships',
@@ -142,10 +126,7 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
     clearFilters();
   };
 
-  const handleViewModeChange = (mode: ViewMode) => {
-    setViewMode(mode);
-    updateSettings({ viewMode: mode });
-  };
+
 
   const handleItemSelect = (itemId: string, selected: boolean) => {
     const newSelected = new Set(selectedItems);
@@ -179,6 +160,24 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
       financial: <MdAccountBalance />,
       spiritual: <MdSelfImprovement />,
       other: <MdDescription />
+    };
+    return icons[category];
+  };
+
+  const getCategoryIconText = (category: BucketListCategory) => {
+    const icons = {
+      travel: '✈',
+      adventure: '▲',
+      learning: '◆',
+      career: '■',
+      health: '♦',
+      relationships: '♥',
+      creativity: '●',
+      experiences: '★',
+      personal: '◉',
+      financial: '$',
+      spiritual: '◎',
+      other: '◇'
     };
     return icons[category];
   };
@@ -217,310 +216,13 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
     ));
   };
 
-  const getCategoryColor = (category: BucketListCategory): string => {
-    const colors = {
-      travel: '#3b82f6',
-      adventure: '#ef4444',
-      learning: '#10b981',
-      career: '#8b5cf6',
-      health: '#f59e0b',
-      relationships: '#ec4899',
-      creativity: '#06b6d4',
-      experiences: '#84cc16',
-      personal: '#6366f1',
-      financial: '#059669',
-      spiritual: '#7c3aed',
-      other: '#6b7280'
-    };
-    return colors[category];
-  };
 
-  const renderTimelineView = () => {
-    const sortedItems = [...filteredItems].sort((a, b) => {
-      if (a.targetDate && b.targetDate) {
-        return new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime();
-      }
-      if (a.targetDate) return -1;
-      if (b.targetDate) return 1;
-      return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
-    });
 
-    const groupedByMonth = sortedItems.reduce((acc, item) => {
-      const date = item.targetDate ? new Date(item.targetDate) : new Date(item.createdDate);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      if (!acc[monthKey]) acc[monthKey] = [];
-      acc[monthKey].push(item);
-      return acc;
-    }, {} as Record<string, BucketListItem[]>);
 
-    return (
-      <div className="timeline-view">
-        <div className="timeline-header">
-          <h3>Timeline View</h3>
-          <div className="timeline-legend">
-            <div className="legend-item">
-              <div className="legend-dot completed"></div>
-              <span>Completed</span>
-            </div>
-            <div className="legend-item">
-              <div className="legend-dot in-progress"></div>
-              <span>In Progress</span>
-            </div>
-            <div className="legend-item">
-              <div className="legend-dot not-started"></div>
-              <span>Not Started</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="timeline-container">
-          {Object.entries(groupedByMonth).map(([monthKey, items]) => {
-            const [year, month] = monthKey.split('-');
-            const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('en-US', { 
-              month: 'long', 
-              year: 'numeric' 
-            });
-            
-            return (
-              <div key={monthKey} className="timeline-month">
-                <div className="timeline-month-header">
-                  <h4>{monthName}</h4>
-                  <span className="timeline-month-count">{items.length} items</span>
-                </div>
-                
-                <div className="timeline-items">
-                  {items.map((item, index) => (
-                    <div key={item.id} className={`timeline-item ${item.status}`}>
-                      <div className="timeline-item-marker">
-                        <div className={`timeline-dot ${item.status}`}></div>
-                        {index < items.length - 1 && <div className="timeline-line"></div>}
-                      </div>
-                      
-                      <div className="timeline-item-content">
-                        <div className="timeline-item-header">
-                          <h5>{item.title}</h5>
-                          <div className="timeline-item-meta">
-                            <span className={`category-badge ${item.category}`}>
-                              {item.category}
-                            </span>
-                            <span className={`priority-badge ${item.priority}`}>
-                              {item.priority}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        {item.description && (
-                          <p className="timeline-item-description">{item.description}</p>
-                        )}
-                        
-                        <div className="timeline-item-progress">
-                          <div className="progress-bar">
-                            <div 
-                              className="progress-fill" 
-                              style={{ width: `${item.progress}%` }}
-                            ></div>
-                          </div>
-                          <span className="progress-text">{item.progress}%</span>
-                        </div>
-                        
-                        {item.targetDate && (
-                          <div className="timeline-item-date">
-                            <MdCalendarToday />
-                            Target: {new Date(item.targetDate).toLocaleDateString()}
-                          </div>
-                        )}
-                        
-                        {item.estimatedCost && (
-                          <div className="timeline-item-cost">
-                            <MdAttachMoney />
-                            {formatCurrency(item.estimatedCost)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-          
-          {Object.keys(groupedByMonth).length === 0 && (
-            <div className="timeline-empty">
-              <MdAccessTime />
-              <h4>No items to display</h4>
-              <p>Add some bucket list items to see your timeline</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
 
-  const renderMotivationView = () => {
-    const completedItems = filteredItems.filter(item => item.status === 'completed');
-    const inProgressItems = filteredItems.filter(item => item.status === 'in_progress');
-    const totalProgress = filteredItems.reduce((sum, item) => sum + item.progress, 0) / filteredItems.length || 0;
-    
-    // Calculate streaks and achievements
-    const currentStreak = 7; // This would be calculated based on recent completions
-    const longestStreak = 14; // This would be stored in user data
-    const totalAchievements = completedItems.length;
-    
-    // Motivational insights
-    const motivationalInsights = [
-      {
-        type: 'streak',
-        title: 'Keep the momentum!',
-        description: `You're on a ${currentStreak}-day streak. Complete one more item to beat your record!`,
-        icon: 'fire',
-        color: '#ef4444'
-      },
-      {
-        type: 'progress',
-        title: 'Great progress!',
-        description: `You've completed ${Math.round(totalProgress)}% of your active goals on average.`,
-        icon: 'trending',
-        color: '#10b981'
-      },
-      {
-        type: 'achievement',
-        title: 'Achievement unlocked!',
-        description: `You've completed ${totalAchievements} bucket list items. Amazing!`,
-        icon: 'trophy',
-        color: '#f59e0b'
-      }
-    ];
 
-    const getMotivationIcon = (iconType: string) => {
-      switch (iconType) {
-        case 'fire': return <MdLocalFireDepartment />;
-        case 'trending': return <MdTrendingUp />;
-        case 'trophy': return <MdEmojiEvents />;
-        default: return <MdStar />;
-      }
-    };
 
-    return (
-      <div className="motivation-view">
-        <div className="motivation-header">
-          <h3>Motivation & Progress</h3>
-          <div className="motivation-score">
-            <div className="score-circle">
-              <div className="score-value">{Math.round(totalProgress)}</div>
-              <div className="score-label">Avg Progress</div>
-            </div>
-          </div>
-        </div>
 
-        <div className="motivation-stats">
-          <div className="motivation-stat-card streak">
-            <div className="stat-icon">
-              <MdLocalFireDepartment />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{currentStreak}</div>
-              <div className="stat-label">Day Streak</div>
-              <div className="stat-sublabel">Longest: {longestStreak} days</div>
-            </div>
-          </div>
-
-          <div className="motivation-stat-card achievements">
-            <div className="stat-icon">
-              <MdEmojiEvents />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{totalAchievements}</div>
-              <div className="stat-label">Completed</div>
-              <div className="stat-sublabel">This year</div>
-            </div>
-          </div>
-
-          <div className="motivation-stat-card momentum">
-            <div className="stat-icon">
-              <MdRocket />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{inProgressItems.length}</div>
-              <div className="stat-label">In Progress</div>
-              <div className="stat-sublabel">Keep going!</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="motivation-insights">
-          <h4>Motivational Insights</h4>
-          <div className="insights-grid">
-            {motivationalInsights.map((insight, index) => (
-              <div key={index} className={`insight-card ${insight.type}`}>
-                <div className="insight-icon" style={{ color: insight.color }}>
-                  {getMotivationIcon(insight.icon)}
-                </div>
-                <div className="insight-content">
-                  <h5>{insight.title}</h5>
-                  <p>{insight.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="motivation-challenges">
-          <h4>Weekly Challenges</h4>
-          <div className="challenges-list">
-            <div className="challenge-item active">
-              <div className="challenge-icon">
-                <MdGpsFixed />
-              </div>
-              <div className="challenge-content">
-                <h5>Complete 3 items this week</h5>
-                <div className="challenge-progress">
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: '66%' }}></div>
-                  </div>
-                  <span>2/3 completed</span>
-                </div>
-              </div>
-              <div className="challenge-reward">
-                <MdDiamond />
-                <span>50 XP</span>
-              </div>
-            </div>
-
-            <div className="challenge-item">
-              <div className="challenge-icon">
-                <MdAccessTime />
-              </div>
-              <div className="challenge-content">
-                <h5>Update progress daily</h5>
-                <div className="challenge-progress">
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: '85%' }}></div>
-                  </div>
-                  <span>6/7 days</span>
-                </div>
-              </div>
-              <div className="challenge-reward">
-                <MdStar />
-                <span>25 XP</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="motivation-quotes">
-          <div className="quote-card">
-            <div className="quote-icon">
-              <MdFormatQuote />
-            </div>
-            <blockquote>
-              "The way to get started is to quit talking and begin doing."
-            </blockquote>
-            <cite>- Walt Disney</cite>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   const formatCurrency = (amount: number, currency: string = 'USD'): string => {
     return new Intl.NumberFormat('en-US', {
@@ -548,26 +250,10 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
           />
         </div>
         <div className="bucket-item-category">
-          <span className="category-icon">{getCategoryIcon(item.category)}</span>
           <span className="category-name">{item.category}</span>
+          <span className="category-icon">{getCategoryIcon(item.category)}</span>
         </div>
         <div className="bucket-item-actions">
-          {item.achievements.length > 0 && (
-            <div className="achievement-badges">
-              {item.achievements.slice(0, 2).map(achievement => (
-                <span 
-                  key={achievement.id} 
-                  className="achievement-badge"
-                  title={achievement.description}
-                >
-                  {achievement.icon}
-                </span>
-              ))}
-              {item.achievements.length > 2 && (
-                <span className="achievement-count">+{item.achievements.length - 2}</span>
-              )}
-            </div>
-          )}
           <button
             className={`favorite-btn ${item.isFavorite ? 'active' : ''}`}
             onClick={() => toggleFavorite(item.id)}
@@ -664,7 +350,7 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
             <span className={`progress-percentage ${item.progress === 100 ? 'completed' : item.progress >= 75 ? 'high' : item.progress >= 50 ? 'medium' : 'low'}`}>
               {item.progress}%
             </span>
-            {item.progress === 100 && <span className="completion-badge">🎉</span>}
+            {item.progress === 100 && <span className="completion-badge"><MdCelebration /></span>}
           </div>
           <div className="progress-bar">
             <div 
@@ -678,7 +364,7 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
                 style={{ left: `${milestone.progress}%` }}
                 title={milestone.title}
               >
-                {milestone.isCompleted ? '✓' : '○'}
+                {milestone.isCompleted ? <MdCheck /> : <MdRadioButtonUnchecked />}
               </div>
             ))}
           </div>
@@ -699,7 +385,7 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
               {item.subGoals.slice(0, 3).map(subGoal => (
                 <div key={subGoal.id} className={`subgoal ${subGoal.isCompleted ? 'completed' : ''}`}>
                   <span className="subgoal-title">{subGoal.title}</span>
-                  {subGoal.isCompleted && <span className="checkmark">✓</span>}
+                  {subGoal.isCompleted && <span className="checkmark"><MdCheck /></span>}
                 </div>
               ))}
               {item.subGoals.length > 3 && (
@@ -798,187 +484,7 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
     </div>
   );
 
-  const renderAnalytics = () => (
-    <div className="analytics-container">
-      <div className="analytics-tabs">
-        <button 
-          className={`analytics-tab ${analyticsView === 'overview' ? 'active' : ''}`}
-          onClick={() => setAnalyticsView('overview')}
-        >
-          <MdAssessment /> Overview
-        </button>
-        <button 
-          className={`analytics-tab ${analyticsView === 'timeline' ? 'active' : ''}`}
-          onClick={() => setAnalyticsView('timeline')}
-        >
-          <MdTimeline /> Timeline
-        </button>
-        <button 
-          className={`analytics-tab ${analyticsView === 'motivation' ? 'active' : ''}`}
-          onClick={() => setAnalyticsView('motivation')}
-        >
-          <MdGpsFixed /> Motivation
-        </button>
-      </div>
 
-      {analyticsView === 'overview' && (
-        <>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon"><MdBarChart /></div>
-              <div className="stat-content">
-                <div className="stat-value">{stats.totalItems}</div>
-                <div className="stat-label">Total Items</div>
-              </div>
-            </div>
-            
-            <div className="stat-card">
-              <div className="stat-icon"><MdCheckCircle /></div>
-              <div className="stat-content">
-                <div className="stat-value">{stats.completedItems}</div>
-                <div className="stat-label">Completed</div>
-              </div>
-            </div>
-            
-            <div className="stat-card">
-              <div className="stat-icon"><MdRocket /></div>
-              <div className="stat-content">
-                <div className="stat-value">{stats.inProgressItems}</div>
-                <div className="stat-label">In Progress</div>
-              </div>
-            </div>
-            
-            <div className="stat-card">
-              <div className="stat-icon"><MdAttachMoney /></div>
-              <div className="stat-content">
-                <div className="stat-value">{formatCurrency(stats.totalEstimatedCost)}</div>
-                <div className="stat-label">Total Cost</div>
-              </div>
-            </div>
-            
-            <div className="stat-card">
-              <div className="stat-icon"><MdTrendingUp /></div>
-              <div className="stat-content">
-                <div className="stat-value">{Math.round(stats.completionRate)}%</div>
-                <div className="stat-label">Completion Rate</div>
-              </div>
-            </div>
-            
-            <div className="stat-card">
-              <div className="stat-icon"><MdFlashOn /></div>
-              <div className="stat-content">
-                <div className="stat-value">{Math.round(stats.averageProgress)}%</div>
-                <div className="stat-label">Avg Progress</div>
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon"><MdLocalFireDepartment /></div>
-              <div className="stat-content">
-                <div className="stat-value">{stats.streakDays}</div>
-                <div className="stat-label">Current Streak</div>
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon"><MdEmojiEvents /></div>
-              <div className="stat-content">
-                <div className="stat-value">{stats.longestStreak}</div>
-                <div className="stat-label">Longest Streak</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="charts-section">
-            <div className="chart-card">
-              <h3>Category Breakdown</h3>
-              <div className="category-chart">
-                {Object.entries(stats.categoriesCount).map(([category, count]) => (
-                  <div key={category} className="category-bar">
-                    <div className="category-info">
-                      <span className="category-icon">{getCategoryIcon(category as BucketListCategory)}</span>
-                      <span className="category-name">{category}</span>
-                      <span className="category-count">({count})</span>
-                    </div>
-                    <div className="category-progress">
-                      <div 
-                        className="category-fill"
-                        style={{ 
-                          width: `${(count / stats.totalItems) * 100}%`,
-                          backgroundColor: getCategoryColor(category as BucketListCategory)
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="chart-card">
-              <h3>Priority Distribution</h3>
-              <div className="priority-chart">
-                {Object.entries(stats.prioritiesCount).map(([priority, count]) => (
-                  <div key={priority} className="priority-item">
-                    <div 
-                      className="priority-circle"
-                      style={{ backgroundColor: getPriorityColor(priority as Priority) }}
-                    >
-                      {count}
-                    </div>
-                    <span className="priority-label">{priority}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {analyticsView === 'timeline' && renderTimelineView()}
-      {analyticsView === 'motivation' && renderMotivationView()}
-
-      <div className="insights-section">
-        <h3>Insights & Recommendations</h3>
-        <div className="recommendations-list">
-          {recommendations.map(rec => (
-            <div key={rec.id} className={`recommendation ${rec.priority}`}>
-              <div className="rec-content">
-                <h4>{rec.title}</h4>
-                <p>{rec.description}</p>
-              </div>
-              <button className="rec-action">{rec.actionText}</button>
-            </div>
-          ))}
-        </div>
-
-        <div className="insights-grid">
-          <div className="insight-card">
-            <h4>Upcoming Deadlines</h4>
-            <div className="insight-list">
-              {insights.upcomingDeadlines.slice(0, 5).map(item => (
-                <div key={item.id} className="insight-item">
-                  <span className="item-title">{item.title}</span>
-                  <span className="item-date">{item.targetDate && formatDate(item.targetDate)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="insight-card">
-            <h4>Quick Wins</h4>
-            <div className="insight-list">
-              {insights.quickWins.slice(0, 5).map(item => (
-                <div key={item.id} className="insight-item">
-                  <span className="item-title">{item.title}</span>
-                  <span className="item-difficulty">{getDifficultyStars(item.difficulty)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
   if (!isOpen) return null;
 
@@ -998,16 +504,10 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
             <MdList /> Items ({stats.totalItems})
           </button>
           <button
-            className={`tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
-            onClick={() => setActiveTab('analytics')}
-          >
-            <MdAssessment /> Analytics
-          </button>
-          <button
             className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
           >
-            ⚙️ Settings
+            <MdSettings /> Settings
           </button>
         </div>
 
@@ -1023,7 +523,7 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="search-input"
                   />
-                  <button className="search-btn">🔍</button>
+                  <button className="search-btn"><MdSearch /></button>
                 </div>
               </div>
 
@@ -1091,8 +591,6 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
           </>
         )}
 
-        {activeTab === 'analytics' && renderAnalytics()}
-
         {activeTab === 'settings' && (
           <div className="settings-container">
             <h3>Settings</h3>
@@ -1103,8 +601,14 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
 
       {/* Add/Edit Form Modal */}
       {(showAddForm || editingItem) && (
-        <div className="form-overlay">
-          <div className="form-modal">
+        <div className="form-overlay" onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowAddForm(false);
+            setEditingItem(null);
+            setFormErrors({});
+          }
+        }}>
+          <div className="form-modal" onClick={(e) => e.stopPropagation()}>
             <div className="form-header">
               <h3>{editingItem ? 'Edit Bucket List Item' : 'Add New Bucket List Item'}</h3>
               <button 
@@ -1200,7 +704,6 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
                   prerequisites: [],
                   resources: [],
                   milestones: [],
-                  achievements: [],
                   reminderDate: undefined,
                   isArchived: false,
                   isFavorite: false,
@@ -1252,7 +755,7 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
                     <option value="">Select category</option>
                     {categories.map(category => (
                       <option key={category} value={category}>
-                        {getCategoryIcon(category)} {category.charAt(0).toUpperCase() + category.slice(1)}
+                        {getCategoryIconText(category)} {category.charAt(0).toUpperCase() + category.slice(1)}
                       </option>
                     ))}
                   </select>
