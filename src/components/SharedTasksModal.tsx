@@ -10,8 +10,6 @@ import {
   MdToday,
   MdFlag,
   MdSearch,
-  MdFilterList,
-  MdSort,
   MdViewList,
   MdViewModule,
   MdDone,

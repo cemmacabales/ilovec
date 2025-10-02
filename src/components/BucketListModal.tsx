@@ -10,19 +10,6 @@ import {
   MdFlag,
   MdStar,
   MdGpsFixed,
-  MdFlightTakeoff,
-  MdTerrain,
-  MdSchool,
-  MdWork,
-  MdFitnessCenter,
-  MdFavorite,
-  MdPalette,
-  MdAutoAwesome,
-  MdPerson,
-  MdAccountBalance,
-  MdSelfImprovement,
-  MdDescription,
-  MdFavoriteBorder,
   MdCheck,
   MdRadioButtonUnchecked,
   MdCelebration,
@@ -38,7 +25,6 @@ import type {
   ItemStatus,
   Difficulty,
   ViewMode,
-  SortOption
 } from '../types/bucketlist';
 
 interface BucketListModalProps {
@@ -50,14 +36,9 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
   const {
     items,
     settings,
-    stats,
-    clearFilters,
-    setSortBy,
-    updateSettings,
     addItem,
     updateItem,
     deleteItem,
-    toggleFavorite,
     updateProgress
   } = useBucketList();
 
@@ -121,31 +102,7 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
   const statuses: ItemStatus[] = ['not_started', 'in_progress', 'completed', 'on_hold', 'cancelled'];
   const difficulties: Difficulty[] = ['easy', 'medium', 'hard', 'extreme'];
 
-  const handleClearFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('');
-    setSelectedPriority('');
-    setSelectedStatus('');
-    clearFilters();
-  };
 
-  const getCategoryIcon = (category: BucketListCategory) => {
-    const icons = {
-      travel: <MdFlightTakeoff />,
-      adventure: <MdTerrain />,
-      learning: <MdSchool />,
-      career: <MdWork />,
-      health: <MdFitnessCenter />,
-      relationships: <MdFavorite />,
-      creativity: <MdPalette />,
-      experiences: <MdAutoAwesome />,
-      personal: <MdPerson />,
-      financial: <MdAccountBalance />,
-      spiritual: <MdSelfImprovement />,
-      other: <MdDescription />
-    };
-    return icons[category];
-  };
 
   const getCategoryDisplay = (category: BucketListCategory) => {
     const displays = {
