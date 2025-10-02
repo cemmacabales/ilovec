@@ -17,6 +17,7 @@ import MusicModal from './components/MusicModal';
 import MovieSeriesModal from './components/MovieSeriesModal';
 import BudgetModal from './components/BudgetModal';
 import BucketListModal from './components/BucketListModal';
+import SharedTasksModal from './components/SharedTasksModal';
 import { WatchlistProvider } from './contexts/WatchlistContext';
 import { BudgetProvider, useBudget } from './contexts/BudgetContext';
 import { BucketListProvider } from './contexts/BucketListContext';
@@ -46,6 +47,7 @@ function AppContent() {
   const [isMovieModalOpen, setIsMovieModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isBucketListModalOpen, setIsBucketListModalOpen] = useState(false);
+  const [isSharedTasksModalOpen, setIsSharedTasksModalOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([
     {
       id: '1',
@@ -102,6 +104,9 @@ function AppContent() {
 
   const openBucketListModal = () => setIsBucketListModalOpen(true);
   const closeBucketListModal = () => setIsBucketListModalOpen(false);
+
+  const openSharedTasksModal = () => setIsSharedTasksModalOpen(true);
+  const closeSharedTasksModal = () => setIsSharedTasksModalOpen(false);
 
 
 
@@ -231,7 +236,7 @@ function AppContent() {
               </div>
             </div>
 
-            <div className="category-card small">
+            <div className="category-card small" onClick={openSharedTasksModal} style={{ cursor: 'pointer' }}>
               <div className="category-icon">
                 <MdChecklist />
               </div>
@@ -521,6 +526,12 @@ function AppContent() {
         <BucketListModal 
           isOpen={isBucketListModalOpen} 
           onClose={closeBucketListModal} 
+        />
+
+      {/* Shared Tasks Modal */}
+        <SharedTasksModal 
+          isOpen={isSharedTasksModalOpen} 
+          onClose={closeSharedTasksModal} 
         />
 
     </div>
