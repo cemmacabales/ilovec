@@ -407,33 +407,46 @@ function AppContent() {
                       </div>
                     </div>
                   )}
-                  <div className="events-list">
-                    {(() => {
-                      const list = selectedDate ? events.filter(e => e.date === selectedDateStr) : events;
-                      if (list.length === 0) {
-                        return (
-                          <div className="empty-events-card">
-                            <p>No events {selectedDate ? 'for this date yet.' : 'scheduled yet.'}</p>
-                          </div>
-                        );
-                      }
-                      return list.map((event) => (
-                        <div key={event.id} className="event-item">
-                          <div className="event-date">
-                            <div className="event-day">{formatDate(event.date)}</div>
-                            <div className="event-time">{formatTime(event.time)}</div>
-                          </div>
-                          <div className="event-details">
-                            <h4>{event.title}</h4>
-                            {event.location && <p className="event-location">{event.location}</p>}
-                            {selectedDate && event.date === selectedDateStr && (
-                              <span style={{ color: '#d4a574', fontWeight: 500 }}>Selected</span>
-                            )}
-                          </div>
-                        </div>
-                      ));
-                    })()}
-                  </div>
+<div className="events-list compact-grid">
+  {(() => {
+    const list = selectedDate ? events.filter(e => e.date === selectedDateStr) : events;
+    if (list.length === 0) {
+      return (
+        <div className="empty-events-card">
+          <p>No events {selectedDate ? 'for this date yet.' : 'scheduled yet.'}</p>
+        </div>
+      );
+    }
+    return list.map((event) => (
+      <div key={event.id} className="event-card">
+        <div className="event-header">
+          <button className="event-checkbox">
+            <MdCheck />
+          </button>
+          <div className="event-actions">
+            <button className="edit-btn">
+              <MdAdd />
+            </button>
+            <button className="delete-btn">
+              <MdClose />
+            </button>
+          </div>
+        </div>
+        <div className="event-content">
+          <h4 className="event-title">{event.title}</h4>
+          <div className="event-meta">
+            <span className="event-date"><MdDateRange /> {formatDate(event.date)}</span>
+            <span className="event-time"><MdDateRange /> {formatTime(event.time)}</span>
+            {event.location && <span className="event-location"><MdDateRange /> {event.location}</span>}
+            {selectedDate && event.date === selectedDateStr && (
+              <span className="selected-label">Selected</span>
+            )}
+          </div>
+        </div>
+      </div>
+    ));
+  })()}
+</div>
                 </div>
               </div>
 

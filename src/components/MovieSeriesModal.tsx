@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MdClose, MdSearch, MdAdd, MdStar, MdPlayArrow, MdCheck, MdRemove } from 'react-icons/md';
+import { MdClose, MdSearch, MdAdd, MdStar, MdPlayArrow, MdCheck, MdRemove, MdAssignment } from 'react-icons/md';
 import { FaFilm, FaTv } from 'react-icons/fa';
 import tmdbService from '../services/tmdb';
 import { useWatchlist } from '../contexts/WatchlistContext';
@@ -260,12 +260,33 @@ const MovieSeriesModal: React.FC<MovieSeriesModalProps> = ({ isOpen, onClose }) 
 
   const displayItems = searchQuery ? searchResults : popularItems;
 
+  const watchlistCount = getItemsByStatus('watchlist').length;
+  const watchingCount = getItemsByStatus('watching').length;
+  const completedCount = getItemsByStatus('completed').length;
+  const totalCount = watchlistCount + watchingCount + completedCount;
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content movie-series-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="shared-tasks-modal modal-content movie-series-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Movie & Series Tracker</h2>
-          <button className="close-btn" onClick={onClose}>
+          <div className="header-left">
+            <h2>Movie & Series Tracker</h2>
+            <div className="task-stats">
+              <span className="stat-item">
+                <MdAssignment /> {totalCount} total
+              </span>
+              <span className="stat-item">
+                <MdAdd /> {watchlistCount} watchlist
+              </span>
+              <span className="stat-item pending">
+                <MdPlayArrow /> {watchingCount} watching
+              </span>
+              <span className="stat-item completed">
+                <MdCheck /> {completedCount} completed
+              </span>
+            </div>
+          </div>
+          <button className="close-button" onClick={onClose}>
             <MdClose />
           </button>
         </div>
@@ -300,57 +321,91 @@ const MovieSeriesModal: React.FC<MovieSeriesModalProps> = ({ isOpen, onClose }) 
         <div className="modal-body">
           {activeTab === 'search' && (
             <>
-              <div className="search-controls">
-                <div className="search-bar">
-                  <input
-                    type="text"
-                    placeholder="Search movies and TV shows..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  />
-                  <button onClick={handleSearch} disabled={loading}>
-                    <MdSearch />
-                  </button>
-                </div>
-                
-                <div className="media-type-filter">
-                  <button 
-                    className={`filter-btn ${mediaType === 'all' ? 'active' : ''}`}
-                    onClick={() => setMediaType('all')}
-                  >
-                    All
-                  </button>
-                  <button 
-                    className={`filter-btn ${mediaType === 'movie' ? 'active' : ''}`}
-                    onClick={() => setMediaType('movie')}
-                  >
-                    <FaFilm /> Movies
-                  </button>
-                  <button 
-                    className={`filter-btn ${mediaType === 'tv' ? 'active' : ''}`}
-                    onClick={() => setMediaType('tv')}
-                  >
-                    <FaTv /> TV Shows
-                  </button>
+              <div className="tasks-controls">
+                <div className="search-filter-row">
+                  <div className="search-bar">
+                    <MdSearch className="search-icon" />
+                    <input
+                      type="text"
+                      placeholder="Search movies and TV shows..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    />
+                  </div>
+                  
+                  <div className="filter-controls">
+                    <div className="media-type-filter">
+                      <button 
+                        className={`filter-btn ${mediaType === 'all' ? 'active' : ''}`}
+                        onClick={() => setMediaType('all')}
+                      >
+                        All
+                      </button>
+                      <button 
+                        className={`filter-btn ${mediaType === 'movie' ? 'active' : ''}`}
+                        onClick={() => setMediaType('movie')}
+                      >
+                        Movies
+                      </button>
+                      <button 
+                        className={`filter-btn ${mediaType === 'tv' ? 'active' : ''}`}
+                        onClick={() => setMediaType('tv')}
+                      >
+                        TV Shows
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="view-actions">
+                    <button 
+                      className="add-task-btn"
+                      onClick={handleSearch}
+                      disabled={loading}
+                    >
+                      <MdSearch /> Search
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {error && <div className="error-message">{error}</div>}
-              
-              {loading ? (
-                <div className="loading-state">Loading...</div>
-              ) : (
-                <div className="media-grid">
-                  {displayItems.filter(item => item && item.id).map(renderMediaItem)}
-                </div>
-              )}
+              <div className="tasks-container">
+                {error && <div className="error-message">{error}</div>}
+                
+                {loading ? (
+                  <div className="loading-state">Loading...</div>
+                ) : (
+                  <>
+                    {displayItems.length === 0 ? (
+                      <div className="empty-state">
+                        <p>No results. Try another search.</p>
+                      </div>
+                    ) : (
+                      <div className="media-grid">
+                        {displayItems.filter(item => item && item.id).map(renderMediaItem)}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </>
           )}
 
-          {activeTab === 'watchlist' && renderWatchlistItems('watchlist')}
-          {activeTab === 'watching' && renderWatchlistItems('watching')}
-          {activeTab === 'completed' && renderWatchlistItems('completed')}
+          {activeTab === 'watchlist' && (
+            <div className="tasks-container">
+              {renderWatchlistItems('watchlist')}
+            </div>
+          )}
+          {activeTab === 'watching' && (
+            <div className="tasks-container">
+              {renderWatchlistItems('watching')}
+            </div>
+          )}
+          {activeTab === 'completed' && (
+            <div className="tasks-container">
+              {renderWatchlistItems('completed')}
+            </div>
+          )}
         </div>
       </div>
     </div>
