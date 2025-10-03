@@ -60,7 +60,7 @@ function mapSupabaseTask(row: any): Task {
   // Fetch tasks from Supabase on mount
   useEffect(() => {
 async function loadTasks() {
-  const { data, error } = await fetchSharedTasks();
+  const { data } = await fetchSharedTasks();
   if (data) setTasks(data.map(mapSupabaseTask));
   // Optionally handle error
 }
@@ -124,6 +124,10 @@ async function loadTasks() {
       case 'both':
         matchesFilter = task.assignedTo === 'both';
         break;
+      case 'all':
+      default:
+        matchesFilter = true;
+        break;
     }
 
     let matchesCategory = true;
@@ -174,12 +178,24 @@ async function loadTasks() {
     setShowAddForm(false); // Close only the add item form, not the modal
   };
 
-  const handleEditTask = () => {
+  const handleEditTask = async () => {
     if (!editingTask || !editingTask.title?.trim()) return;
-    
-    setTasks(tasks.map(task => 
-      task.id === editingTask.id ? editingTask : task
-    ));
+
+    // Persist changes to Supabase
+    await import('../services/supabase').then(m => m.updateSharedTask(editingTask.id, {
+      title: editingTask.title,
+      description: editingTask.description,
+      assigned_to: editingTask.assignedTo,
+      priority: editingTask.priority,
+      due_date: editingTask.dueDate,
+      category: editingTask.category,
+      is_completed: editingTask.isCompleted,
+      completed_date: editingTask.completedDate
+    } as any));
+
+    // Refresh tasks from Supabase
+    const { data } = await fetchSharedTasks();
+    if (data) setTasks(data.map(mapSupabaseTask));
     setEditingTask(null);
   };
 
@@ -203,7 +219,9 @@ async function loadTasks() {
 
   const deleteTask = async (taskId: string) => {
     await import('../services/supabase').then(m => m.deleteSharedTask(taskId));
-    setTasks(tasks.filter(task => task.id !== taskId));
+    // Refresh tasks from Supabase for consistency
+    const { data } = await fetchSharedTasks();
+    if (data) setTasks(data.map(mapSupabaseTask));
   };
 
   const formatDate = (dateStr: string) => {
