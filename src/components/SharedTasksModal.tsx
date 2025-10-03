@@ -161,22 +161,19 @@ export default function SharedTasksModal({ isOpen, onClose }: SharedTasksModalPr
     }
   });
 
-  const handleAddTask = () => {
+  const { addSharedTask } = require('../services/supabase');
+
+  const handleAddTask = async () => {
     if (!newTask.title?.trim()) return;
-    
-    const task: Task = {
-      id: Date.now().toString(),
+    await addSharedTask({
       title: newTask.title,
       description: newTask.description,
-      isCompleted: false,
-      assignedTo: newTask.assignedTo as 'both' | 'me' | 'partner',
-      priority: newTask.priority as 'low' | 'medium' | 'high',
+      assignedTo: newTask.assignedTo as string,
+      priority: newTask.priority as string,
       dueDate: newTask.dueDate || undefined,
-      createdDate: new Date().toISOString().split('T')[0],
-      category: newTask.category as Task['category']
-    };
-    
-    setTasks([task, ...tasks]);
+      category: newTask.category as string
+    });
+    // Optionally refresh tasks from Supabase here
     setNewTask({
       title: '',
       description: '',

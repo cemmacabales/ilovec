@@ -36,7 +36,6 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
   const {
     items,
     settings,
-    addItem,
     updateItem,
     deleteItem,
     updateProgress
@@ -440,7 +439,7 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
               </div>
               
               <div className="form-content">
-                <form onSubmit={(e) => {
+                <form onSubmit={async (e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
                   
@@ -471,7 +470,9 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
                     isFavorite: false,
                   };
                   
-                  addItem(itemData);
+                  const { addBucketListItem } = require('../services/supabase');
+                  await addBucketListItem(itemData);
+                  // Optionally refresh items from Supabase here
                   setShowAddForm(false);
                 }}>
                   <div className="form-group">

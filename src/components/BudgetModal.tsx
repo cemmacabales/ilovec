@@ -40,7 +40,6 @@ export default function BudgetModal({ isOpen, onClose }: BudgetModalProps) {
     budgets,
     savingsGoals,
     settings,
-    addExpense,
     addBudget,
     addSavingsGoal,
     updateExpense,
@@ -87,19 +86,18 @@ export default function BudgetModal({ isOpen, onClose }: BudgetModalProps) {
     { value: 'other', label: 'Other' }
   ];
 
-  const handleAddItem = () => {
+  const { addExpense: addExpenseSupabase } = require('../services/supabase');
+
+  const handleAddItem = async () => {
     if (currentView === 'expenses' && newItem.amount && newItem.description) {
-      addExpense({
+      await addExpenseSupabase({
         amount: parseFloat(newItem.amount),
         category: newItem.category,
         description: newItem.description,
         date: newItem.date,
-        paidBy: newItem.paidBy,
-        splitType: 'equal',
-        splitPercentage: 50,
-        tags: [],
-        isRecurring: false
+        paidBy: newItem.paidBy
       });
+      // Optionally refresh expenses from Supabase here
     } else if (currentView === 'budgets' && newItem.monthlyLimit) {
       addBudget({
         category: newItem.category,

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './App.css';
@@ -21,6 +21,7 @@ import SharedTasksModal from './components/SharedTasksModal';
 import { WatchlistProvider } from './contexts/WatchlistContext';
 import { BudgetProvider, useBudget } from './contexts/BudgetContext';
 import { BucketListProvider } from './contexts/BucketListContext';
+import { addEvent, fetchEvents } from './services/supabase';
 
 interface Event {
   id: string;
@@ -48,29 +49,7 @@ function AppContent() {
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isBucketListModalOpen, setIsBucketListModalOpen] = useState(false);
   const [isSharedTasksModalOpen, setIsSharedTasksModalOpen] = useState(false);
-  const [events, setEvents] = useState<Event[]>([
-    {
-      id: '1',
-      title: 'Dinner at Sunset Bistro',
-      date: '2025-02-14',
-      time: '19:30',
-      location: 'Downtown'
-    },
-    {
-      id: '2',
-      title: 'Movie Night',
-      date: '2025-02-16',
-      time: '20:00',
-      location: 'Cinema Plaza'
-    },
-    {
-      id: '3',
-      title: 'Beach Walk',
-      date: '2025-02-20',
-      time: '10:00',
-      location: 'Santa Monica'
-    }
-  ]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', date: '', time: '', location: '' });
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -110,16 +89,17 @@ function AppContent() {
 
 
 
-  const handleAddEvent = () => {
+  const handleAddEvent = async () => {
     if (newEvent.title && newEvent.date && newEvent.time) {
-      const event: Event = {
-        id: Date.now().toString(),
+      await addEvent({
         title: newEvent.title,
         date: newEvent.date,
         time: newEvent.time,
         location: newEvent.location
-      };
-      setEvents([...events, event]);
+      });
+      // Refresh events from Supabase
+      const { data } = await fetchEvents();
+      setEvents(data || []);
       setNewEvent({ title: '', date: '', time: '', location: '' });
       setShowAddForm(false);
     }
@@ -133,6 +113,14 @@ function AppContent() {
       day: 'numeric' 
     });
   };
+
+  // Fetch events from Supabase on mount
+  React.useEffect(() => {
+    (async () => {
+      const { data } = await fetchEvents();
+      setEvents(data || []);
+    })();
+  }, []);
 
   const formatTime = (timeStr: string) => {
     const [hours, minutes] = timeStr.split(':');
