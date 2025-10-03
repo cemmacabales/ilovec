@@ -14,6 +14,7 @@ import type {
   ValidationResult,
   BudgetError
 } from '../types/budget';
+import { addExpense as supabaseAddExpense, fetchExpenses as supabaseFetchExpenses, updateExpense as supabaseUpdateExpense, deleteExpense as supabaseDeleteExpense } from '../services/supabase';
 
 const defaultSettings: BudgetSettings = {
   currency: 'PHP',
@@ -46,27 +47,55 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
   const [customReports, setCustomReports] = useState<CustomReport[]>([]);
   const [settings, setSettings] = useState<BudgetSettings>(defaultSettings);
 
-  // Load data from localStorage on mount
+  // Load expenses, budgets, and savings goals from Supabase on mount
   useEffect(() => {
-    const savedExpenses = localStorage.getItem('budget-expenses');
-    const savedBudgets = localStorage.getItem('budget-budgets');
-    const savedSavingsGoals = localStorage.getItem('budget-savings-goals');
-    const savedFinancialGoals = localStorage.getItem('budget-financial-goals');
-    const savedCustomReports = localStorage.getItem('budget-custom-reports');
-    const savedSettings = localStorage.getItem('budget-settings');
-
-    if (savedExpenses) setExpenses(JSON.parse(savedExpenses));
-    if (savedBudgets) setBudgets(JSON.parse(savedBudgets));
-    if (savedSavingsGoals) setSavingsGoals(JSON.parse(savedSavingsGoals));
-    if (savedFinancialGoals) setFinancialGoals(JSON.parse(savedFinancialGoals));
-    if (savedCustomReports) setCustomReports(JSON.parse(savedCustomReports));
-    if (savedSettings) setSettings(JSON.parse(savedSettings));
+    async function loadAll() {
+      // Expenses
+      const { data: expenseData, error: expenseError } = await supabaseFetchExpenses();
+      if (!expenseError && expenseData) {
+setExpenses(expenseData.map((expense: any) => ({
+  ...expense,
+  date: (() => {
+    const rawDate = expense.date || expense.created_at;
+    if (typeof rawDate === 'string') {
+      // If ISO format, convert to YYYY-MM-DD
+      const match = rawDate.match(/^\d{4}-\d{2}-\d{2}/);
+      return match ? match[0] : rawDate;
+    }
+    return '';
+  })()
+})));
+      }
+      // Budgets
+      const { data: budgetData, error: budgetError } = await import('../services/supabase').then(m => m.fetchBudgets());
+      if (!budgetError && budgetData) {
+        setBudgets(budgetData.map((budget: any) => ({
+          id: budget.id,
+          category: budget.category,
+          monthlyLimit: Number(budget.monthly_limit),
+          currentSpent: Number(budget.current_spent),
+          alertThreshold: Number(budget.alert_threshold),
+          isActive: !!budget.is_active
+        })));
+      }
+      // Savings Goals
+      const { data: goalData, error: goalError } = await import('../services/supabase').then(m => m.fetchSavingsGoals());
+      if (!goalError && goalData) {
+        setSavingsGoals(goalData.map((goal: any) => ({
+          id: goal.id,
+          title: goal.title,
+          targetAmount: Number(goal.target_amount),
+          currentAmount: Number(goal.current_amount),
+          targetDate: goal.target_date,
+          category: goal.category,
+          description: goal.description
+        })));
+      }
+    }
+    loadAll();
   }, []);
 
-  // Save data to localStorage whenever state changes
-  useEffect(() => {
-    localStorage.setItem('budget-expenses', JSON.stringify(expenses));
-  }, [expenses]);
+  // Remove localStorage sync for expenses (now handled by Supabase)
 
   useEffect(() => {
     localStorage.setItem('budget-budgets', JSON.stringify(budgets));
@@ -168,19 +197,30 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
     return { isValid: errors.length === 0, errors };
   };
 
-  // Enhanced Expense management
+  // Enhanced Expense management (Supabase)
   const addExpense = async (expense: Omit<Expense, 'id'>): Promise<string> => {
     const validation = validateExpense(expense);
     if (!validation.isValid) {
       throw new Error(`Validation failed: ${validation.errors.map(e => e.message).join(', ')}`);
     }
 
-    const newExpense: Expense = {
-      ...expense,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-    };
+    // Save to Supabase
+    const { error } = await supabaseAddExpense(expense);
+    if (error) throw new Error(error.message);
 
-    setExpenses(prev => [newExpense, ...prev]);
+    // Refetch expenses from Supabase
+    const { data } = await supabaseFetchExpenses();
+    if (data) setExpenses(data.map((expense: any) => ({
+  ...expense,
+  date: (() => {
+    const rawDate = expense.date || expense.created_at;
+    if (typeof rawDate === 'string') {
+      const match = rawDate.match(/^\d{4}-\d{2}-\d{2}/);
+      return match ? match[0] : rawDate;
+    }
+    return '';
+  })()
+})));
 
     // Update budget current spent
     const budget = budgets.find(b => b.category === expense.category);
@@ -190,7 +230,8 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
       });
     }
 
-    return newExpense.id;
+    // Return a placeholder id (real id comes from Supabase)
+    return 'supabase';
   };
 
   const updateExpense = async (id: string, updates: Partial<Expense>): Promise<boolean> => {
@@ -203,9 +244,23 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
       throw new Error(`Validation failed: ${validation.errors.map(e => e.message).join(', ')}`);
     }
 
-    setExpenses(prev => prev.map(expense => 
-      expense.id === id ? updatedExpense : expense
-    ));
+    // Update in Supabase
+    const { error } = await supabaseUpdateExpense(id, updates);
+    if (error) throw new Error(error.message);
+
+    // Refetch expenses from Supabase
+    const { data } = await supabaseFetchExpenses();
+    if (data) setExpenses(data.map((expense: any) => ({
+  ...expense,
+  date: (() => {
+    const rawDate = expense.date || expense.created_at;
+    if (typeof rawDate === 'string') {
+      const match = rawDate.match(/^\d{4}-\d{2}-\d{2}/);
+      return match ? match[0] : rawDate;
+    }
+    return '';
+  })()
+})));
 
     // Update budget if category or amount changed
     if (updates.category || updates.amount) {
@@ -233,8 +288,24 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
     const expense = expenses.find(e => e.id === id);
     if (!expense) return false;
 
-    setExpenses(prev => prev.filter(e => e.id !== id));
-    
+    // Delete from Supabase
+    const { error } = await supabaseDeleteExpense(id);
+    if (error) throw new Error(error.message);
+
+    // Refetch expenses from Supabase
+    const { data } = await supabaseFetchExpenses();
+    if (data) setExpenses(data.map((expense: any) => ({
+  ...expense,
+  date: (() => {
+    const rawDate = expense.date || expense.created_at;
+    if (typeof rawDate === 'string') {
+      const match = rawDate.match(/^\d{4}-\d{2}-\d{2}/);
+      return match ? match[0] : rawDate;
+    }
+    return '';
+  })()
+})));
+
     // Update budget current spent
     const budget = budgets.find(b => b.category === expense.category);
     if (budget) {
@@ -285,30 +356,34 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
     );
   };
 
-  // Enhanced Budget management
+  // Enhanced Budget management (Supabase)
   const addBudget = async (budget: Omit<Budget, 'id' | 'currentSpent'>): Promise<string> => {
     const validation = validateBudget(budget);
     if (!validation.isValid) {
       throw new Error(`Validation failed: ${validation.errors.map(e => e.message).join(', ')}`);
     }
 
-    // Check if budget for this category already exists
-    const existingBudget = budgets.find(b => b.category === budget.category);
-    if (existingBudget) {
-      throw new Error('Budget for this category already exists');
-    }
+    // Save to Supabase
+    const { error } = await import('../services/supabase').then(m => m.addBudget({
+      category: budget.category,
+      monthlyLimit: budget.monthlyLimit,
+      alertThreshold: budget.alertThreshold,
+      isActive: budget.isActive
+    }));
+    if (error) throw new Error(error.message);
 
-    const currentSpent = getExpensesByCategory(budget.category)
-      .reduce((sum, expense) => sum + expense.amount, 0);
-    
-    const newBudget: Budget = {
-      ...budget,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      currentSpent,
-    };
+    // Refetch budgets from Supabase
+    const { data } = await import('../services/supabase').then(m => m.fetchBudgets());
+    if (data) setBudgets(data.map((budget: any) => ({
+      id: budget.id,
+      category: budget.category,
+      monthlyLimit: Number(budget.monthly_limit),
+      currentSpent: Number(budget.current_spent),
+      alertThreshold: Number(budget.alert_threshold),
+      isActive: !!budget.is_active
+    })));
 
-    setBudgets(prev => [newBudget, ...prev]);
-    return newBudget.id;
+    return 'supabase';
   };
 
   const updateBudget = async (id: string, updates: Partial<Budget>): Promise<boolean> => {
@@ -321,9 +396,20 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
       throw new Error(`Validation failed: ${validation.errors.map(e => e.message).join(', ')}`);
     }
 
-    setBudgets(prev => prev.map(budget => 
-      budget.id === id ? updatedBudget : budget
-    ));
+    // Update in Supabase
+    const { error } = await import('../services/supabase').then(m => m.updateBudget(id, updates));
+    if (error) throw new Error(error.message);
+
+    // Refetch budgets from Supabase
+    const { data } = await import('../services/supabase').then(m => m.fetchBudgets());
+    if (data) setBudgets(data.map((budget: any) => ({
+      id: budget.id,
+      category: budget.category,
+      monthlyLimit: Number(budget.monthly_limit),
+      currentSpent: Number(budget.current_spent),
+      alertThreshold: Number(budget.alert_threshold),
+      isActive: !!budget.is_active
+    })));
 
     return true;
   };
@@ -332,7 +418,21 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
     const budget = budgets.find(b => b.id === id);
     if (!budget) return false;
 
-    setBudgets(prev => prev.filter(budget => budget.id !== id));
+    // Delete from Supabase
+    const { error } = await import('../services/supabase').then(m => m.deleteBudget(id));
+    if (error) throw new Error(error.message);
+
+    // Refetch budgets from Supabase
+    const { data } = await import('../services/supabase').then(m => m.fetchBudgets());
+    if (data) setBudgets(data.map((budget: any) => ({
+      id: budget.id,
+      category: budget.category,
+      monthlyLimit: Number(budget.monthly_limit),
+      currentSpent: Number(budget.current_spent),
+      alertThreshold: Number(budget.alert_threshold),
+      isActive: !!budget.is_active
+    })));
+
     return true;
   };
 
@@ -354,20 +454,37 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
     return await updateBudget(id, { currentSpent });
   };
 
-  // Enhanced Savings goals
+  // Enhanced Savings goals (Supabase)
   const addSavingsGoal = async (goal: Omit<SavingsGoal, 'id'>): Promise<string> => {
     const validation = validateSavingsGoal(goal);
     if (!validation.isValid) {
       throw new Error(`Validation failed: ${validation.errors.map(e => e.message).join(', ')}`);
     }
 
-    const newGoal: SavingsGoal = {
-      ...goal,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-    };
+    // Save to Supabase
+    const { error } = await import('../services/supabase').then(m => m.addSavingsGoal({
+      title: goal.title,
+      targetAmount: goal.targetAmount,
+      currentAmount: goal.currentAmount,
+      targetDate: goal.targetDate,
+      category: goal.category,
+      description: goal.description
+    }));
+    if (error) throw new Error(error.message);
 
-    setSavingsGoals(prev => [newGoal, ...prev]);
-    return newGoal.id;
+    // Refetch savings goals from Supabase
+    const { data } = await import('../services/supabase').then(m => m.fetchSavingsGoals());
+    if (data) setSavingsGoals(data.map((goal: any) => ({
+      id: goal.id,
+      title: goal.title,
+      targetAmount: Number(goal.target_amount),
+      currentAmount: Number(goal.current_amount),
+      targetDate: goal.target_date,
+      category: goal.category,
+      description: goal.description
+    })));
+
+    return 'supabase';
   };
 
   const updateSavingsGoal = async (id: string, updates: Partial<SavingsGoal>): Promise<boolean> => {
@@ -380,9 +497,21 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
       throw new Error(`Validation failed: ${validation.errors.map(e => e.message).join(', ')}`);
     }
 
-    setSavingsGoals(prev => prev.map(goal => 
-      goal.id === id ? updatedGoal : goal
-    ));
+    // Update in Supabase
+    const { error } = await import('../services/supabase').then(m => m.updateSavingsGoal(id, updates));
+    if (error) throw new Error(error.message);
+
+    // Refetch savings goals from Supabase
+    const { data } = await import('../services/supabase').then(m => m.fetchSavingsGoals());
+    if (data) setSavingsGoals(data.map((goal: any) => ({
+      id: goal.id,
+      title: goal.title,
+      targetAmount: Number(goal.target_amount),
+      currentAmount: Number(goal.current_amount),
+      targetDate: goal.target_date,
+      category: goal.category,
+      description: goal.description
+    })));
 
     return true;
   };
@@ -391,7 +520,22 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
     const goal = savingsGoals.find(g => g.id === id);
     if (!goal) return false;
 
-    setSavingsGoals(prev => prev.filter(goal => goal.id !== id));
+    // Delete from Supabase
+    const { error } = await import('../services/supabase').then(m => m.deleteSavingsGoal(id));
+    if (error) throw new Error(error.message);
+
+    // Refetch savings goals from Supabase
+    const { data } = await import('../services/supabase').then(m => m.fetchSavingsGoals());
+    if (data) setSavingsGoals(data.map((goal: any) => ({
+      id: goal.id,
+      title: goal.title,
+      targetAmount: Number(goal.target_amount),
+      currentAmount: Number(goal.current_amount),
+      targetDate: goal.target_date,
+      category: goal.category,
+      description: goal.description
+    })));
+
     return true;
   };
 

@@ -131,35 +131,53 @@ const BucketListContext = createContext<BucketListContextType | undefined>(undef
 export function BucketListProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(bucketListReducer, initialState);
 
-  // Load data from localStorage on mount
+  // Load data from Supabase on mount
   useEffect(() => {
-    const savedItems = localStorage.getItem('bucketListItems');
-    const savedSettings = localStorage.getItem('bucketListSettings');
-    
-    if (savedItems) {
+    async function loadSupabaseItems() {
       try {
-        const items = JSON.parse(savedItems).map((item: any) => ({
-          ...item,
-          createdDate: new Date(item.createdDate),
-          updatedDate: new Date(item.updatedDate),
-          targetDate: item.targetDate ? new Date(item.targetDate) : undefined,
-          completedDate: item.completedDate ? new Date(item.completedDate) : undefined,
-          reminderDate: item.reminderDate ? new Date(item.reminderDate) : undefined,
-        }));
-        dispatch({ type: 'SET_ITEMS', payload: items });
+        const { data, error } = await import('../services/supabase').then(m => m.fetchBucketListItems());
+        if (error) {
+          console.error('Error fetching bucket list items from Supabase:', error);
+          return;
+        }
+        if (data) {
+          // Map Supabase fields to BucketListItem
+const items = data.map((item: any) => ({
+  id: item.id,
+  title: item.title,
+  description: item.description,
+  category: item.category,
+  priority: item.priority,
+  status: item.status,
+  difficulty: item.difficulty,
+  estimatedCost: item.estimated_cost,
+  currency: item.currency,
+  targetDate: item.target_date ? new Date(item.target_date) : undefined,
+  completedDate: item.completed_date ? new Date(item.completed_date) : undefined,
+  progress: typeof item.progress === 'number' ? item.progress : 0,
+  subGoals: Array.isArray(item.sub_goals) ? item.sub_goals : [],
+  tags: Array.isArray(item.tags) ? item.tags : [],
+  location: item.location,
+  notes: item.notes,
+  inspiration: item.inspiration,
+  timeToComplete: item.time_to_complete,
+  seasonality: item.seasonality,
+  prerequisites: Array.isArray(item.prerequisites) ? item.prerequisites : [],
+  resources: Array.isArray(item.resources) ? item.resources : [],
+  milestones: Array.isArray(item.milestones) ? item.milestones : [],
+  reminderDate: item.reminder_date ? new Date(item.reminder_date) : undefined,
+  isArchived: typeof item.is_archived === 'boolean' ? item.is_archived : false,
+  isFavorite: typeof item.is_favorite === 'boolean' ? item.is_favorite : false,
+  createdDate: item.created_at ? new Date(item.created_at) : new Date(),
+  updatedDate: new Date()
+}));
+          dispatch({ type: 'SET_ITEMS', payload: items });
+        }
       } catch (error) {
-        console.error('Error loading bucket list items:', error);
+        console.error('Error loading bucket list items from Supabase:', error);
       }
     }
-    
-    if (savedSettings) {
-      try {
-        const settings = JSON.parse(savedSettings);
-        dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
-      } catch (error) {
-        console.error('Error loading bucket list settings:', error);
-      }
-    }
+    loadSupabaseItems();
   }, []);
 
   // Save data to localStorage when items or settings change
@@ -185,11 +203,52 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
     dispatch({ type: 'ADD_ITEM', payload: newItem });
   };
 
-  const updateItem = (id: string, updates: Partial<BucketListItem>) => {
-    dispatch({ type: 'UPDATE_ITEM', payload: { id, updates } });
+  const updateItem = async (id: string, updates: Partial<BucketListItem>) => {
+    // Convert targetDate to string if present
+    const supabaseUpdates: any = { ...updates };
+    if (supabaseUpdates.targetDate instanceof Date) {
+      supabaseUpdates.targetDate = supabaseUpdates.targetDate.toISOString();
+    }
+    // Persist to Supabase
+    await import('../services/supabase').then(m => m.updateBucketListItem(id, supabaseUpdates));
+    // Refetch items to sync UI
+    const { data } = await import('../services/supabase').then(m => m.fetchBucketListItems());
+    if (data) {
+      const items = data.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        priority: item.priority,
+        status: item.status,
+        difficulty: item.difficulty,
+        estimatedCost: item.estimated_cost,
+        currency: item.currency,
+        targetDate: item.target_date ? new Date(item.target_date) : undefined,
+        completedDate: item.completed_date ? new Date(item.completed_date) : undefined,
+        progress: typeof item.progress === 'number' ? item.progress : 0,
+        subGoals: Array.isArray(item.sub_goals) ? item.sub_goals : [],
+        tags: Array.isArray(item.tags) ? item.tags : [],
+        location: item.location,
+        notes: item.notes,
+        inspiration: item.inspiration,
+        timeToComplete: item.time_to_complete,
+        seasonality: item.seasonality,
+        prerequisites: Array.isArray(item.prerequisites) ? item.prerequisites : [],
+        resources: Array.isArray(item.resources) ? item.resources : [],
+        milestones: Array.isArray(item.milestones) ? item.milestones : [],
+        reminderDate: item.reminder_date ? new Date(item.reminder_date) : undefined,
+        isArchived: typeof item.is_archived === 'boolean' ? item.is_archived : false,
+        isFavorite: typeof item.is_favorite === 'boolean' ? item.is_favorite : false,
+        createdDate: item.created_at ? new Date(item.created_at) : new Date(),
+        updatedDate: new Date()
+      }));
+      dispatch({ type: 'SET_ITEMS', payload: items });
+    }
   };
 
-  const deleteItem = (id: string) => {
+  const deleteItem = async (id: string) => {
+    await import('../services/supabase').then(m => m.deleteBucketListItem(id));
     dispatch({ type: 'DELETE_ITEM', payload: id });
   };
 
@@ -270,7 +329,7 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
   };
 
   // Progress and milestones
-  const updateProgress = (id: string, progress: number) => {
+  const updateProgress = async (id: string, progress: number) => {
     const clampedProgress = Math.max(0, Math.min(100, progress));
     const updates: Partial<BucketListItem> = { progress: clampedProgress };
     
@@ -281,7 +340,7 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
       updates.status = 'in_progress';
     }
     
-    updateItem(id, updates);
+    await updateItem(id, updates);
   };
 
   const addMilestone = (itemId: string, milestoneData: Omit<Milestone, 'id'>) => {
@@ -374,14 +433,14 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
           comparison = a.title.localeCompare(b.title);
           break;
         case 'created_date':
-          comparison = a.createdDate.getTime() - b.createdDate.getTime();
+          comparison = (a.createdDate?.getTime?.() ?? 0) - (b.createdDate?.getTime?.() ?? 0);
           break;
         case 'updated_date':
-          comparison = a.updatedDate.getTime() - b.updatedDate.getTime();
+          comparison = (a.updatedDate?.getTime?.() ?? 0) - (b.updatedDate?.getTime?.() ?? 0);
           break;
         case 'target_date':
-          const aDate = a.targetDate?.getTime() || 0;
-          const bDate = b.targetDate?.getTime() || 0;
+          const aDate = a.targetDate?.getTime?.() ?? 0;
+          const bDate = b.targetDate?.getTime?.() ?? 0;
           comparison = aDate - bDate;
           break;
         case 'priority':
@@ -399,7 +458,7 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
           comparison = (a.estimatedCost || 0) - (b.estimatedCost || 0);
           break;
         default:
-          comparison = a.createdDate.getTime() - b.createdDate.getTime();
+          comparison = (a.createdDate?.getTime?.() ?? 0) - (b.createdDate?.getTime?.() ?? 0);
       }
       
       return sortOrder === 'asc' ? comparison : -comparison;
@@ -523,6 +582,10 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
+  const setItems = (items: BucketListItem[]) => {
+    dispatch({ type: 'SET_ITEMS', payload: items });
+  };
+
   const contextValue: BucketListContextType = useMemo(() => ({
     items: state.items,
     filteredItems,
@@ -562,6 +625,7 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
     
     // Settings
     updateSettings,
+    setItems,
     
     // Analytics and insights
     getInsights,
@@ -597,6 +661,7 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
     bulkDelete,
     bulkArchive,
     updateSettings,
+    setItems,
     getInsights,
     getRecommendations,
     exportData,

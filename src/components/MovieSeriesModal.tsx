@@ -114,27 +114,72 @@ const MovieSeriesModal: React.FC<MovieSeriesModalProps> = ({ isOpen, onClose }) 
     setWatchlistItems(data || []);
   };
 
-  const handleRemoveFromWatchlist = async (item: TMDBMovie | TMDBTVShow) => {
-    const isMovie = 'title' in item;
-    const existingItem = getItemByTmdbId(item.id, isMovie ? 'movie' : 'tv');
-    if (existingItem) {
-      await removeMovieSeries(existingItem.id);
+  const handleRemoveFromWatchlist = async (item: any) => {
+    // Always resolve the Supabase item for deletion
+    let supabaseItem = item;
+    if (!item.id && item.tmdb_id) {
+      // Refetch latest watchlistItems before resolving
+      const { data } = await fetchMovieSeries();
+      setWatchlistItems(data || []);
+      supabaseItem = (data || []).find(
+        (i: any) => i.tmdb_id === item.tmdb_id && i.type === item.type
+      );
+    } else if (!item.id && item.id && item.title) {
+      const { data } = await fetchMovieSeries();
+      setWatchlistItems(data || []);
+      supabaseItem = (data || []).find(
+        (i: any) => i.tmdb_id === item.id && i.type === ('title' in item ? 'movie' : 'tv')
+      );
+    }
+    if (!supabaseItem || !supabaseItem.id) {
+      alert('Could not find item in Supabase to delete.');
+      return;
+    }
+    try {
+      console.log('Deleting Supabase item id:', supabaseItem.id);
+      const { error } = await removeMovieSeries(supabaseItem.id);
+      if (error) {
+        alert('Failed to delete: ' + error.message);
+        return;
+      }
+      const { data } = await fetchMovieSeries();
+      setWatchlistItems(data || []);
+    } catch (err) {
+      alert('Unexpected error during delete: ' + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
+  const handleStatusChange = async (item: any, newStatus: 'watchlist' | 'watching' | 'completed') => {
+    // Always resolve the Supabase item for updates
+    let supabaseItem = item;
+    if (!item.id && item.tmdb_id) {
+      supabaseItem = getItemByTmdbId(item.tmdb_id, item.type);
+    } else if (!item.id && item.id && item.title) {
+      supabaseItem = getItemByTmdbId(item.id, 'title' in item ? 'movie' : 'tv');
+    }
+    if (supabaseItem && supabaseItem.id) {
+      const { error } = await updateMovieSeries(supabaseItem.id, { 
+        status: newStatus,
+        notes: supabaseItem.poster_path || supabaseItem.notes || ''
+      });
+      if (error) {
+        alert('Failed to update status: ' + error.message);
+        return;
+      }
       const { data } = await fetchMovieSeries();
       setWatchlistItems(data || []);
     }
   };
 
-  const handleStatusChange = async (item: TMDBMovie | TMDBTVShow, newStatus: 'watchlist' | 'watching' | 'completed') => {
-    const isMovie = 'title' in item;
-    const existingItem = getItemByTmdbId(item.id, isMovie ? 'movie' : 'tv');
-    if (existingItem) {
-      await updateMovieSeries(existingItem.id, { 
-        status: newStatus,
-        notes: newStatus === 'completed' ? new Date().toISOString() : undefined
-      });
-      const { data } = await fetchMovieSeries();
-      setWatchlistItems(data || []);
-    }
+  // Track "added" state for each search result at the component level
+  const [addedMap, setAddedMap] = useState<{ [id: number]: boolean }>({});
+
+  const handleAddWithEffect = async (item: TMDBMovie | TMDBTVShow) => {
+    await handleAddToWatchlist(item);
+    setAddedMap(prev => ({ ...prev, [item.id]: true }));
+    setTimeout(() => {
+      setAddedMap(prev => ({ ...prev, [item.id]: false }));
+    }, 1500);
   };
 
   const renderMediaItem = (item: TMDBMovie | TMDBTVShow) => {
@@ -144,10 +189,10 @@ const MovieSeriesModal: React.FC<MovieSeriesModalProps> = ({ isOpen, onClose }) 
     const year = releaseDate ? tmdbService.getYear(releaseDate) : 'Unknown';
     const posterUrl = tmdbService.getImageUrl(item.poster_path, 'w342');
     const inWatchlist = isInWatchlist(item.id, isMovie ? 'movie' : 'tv');
-    const existingItem = getItemByTmdbId(item.id, isMovie ? 'movie' : 'tv');
+    const added = !!addedMap[item.id];
 
     return (
-      <div key={`${isMovie ? 'movie' : 'tv'}-${item.id}`} className="media-item">
+      <div key={`${isMovie ? 'movie' : 'tv'}-${item.id}`} className={`media-item${added ? ' added-effect' : ''}`}>
         <div className="media-poster">
           {posterUrl ? (
             <img src={posterUrl} alt={title} />
@@ -172,29 +217,25 @@ const MovieSeriesModal: React.FC<MovieSeriesModalProps> = ({ isOpen, onClose }) 
           <div className="media-actions">
             {!inWatchlist ? (
               <button 
-                className="action-btn add-btn"
-                onClick={() => handleAddToWatchlist(item)}
+                className={`action-btn add-btn${added ? ' added-btn' : ''}`}
+                onClick={() => handleAddWithEffect(item)}
+                disabled={added}
+                style={added ? { background: '#4caf50', color: '#fff', transform: 'scale(1.08)', transition: 'all 0.3s' } : {}}
               >
-                <MdAdd /> Add to Watchlist
+{added ? (
+  <span className="added-btn">
+    <MdCheck style={{ marginRight: 10, fontSize: '1.6em', color: '#fff' }} />
+    Added to Watchlist
+  </span>
+) : (
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
+                    <MdAdd style={{ marginRight: 8, fontSize: '1.2em' }} />
+                    Add to Watchlist
+                  </span>
+                )}
               </button>
             ) : (
-              <div className="status-controls">
-                <select
-                  value={existingItem?.status || 'watchlist'}
-                  onChange={(e) => handleStatusChange(item, e.target.value as any)}
-                  className="status-select"
-                >
-                  <option value="watchlist">Watchlist</option>
-                  <option value="watching">Watching</option>
-                  <option value="completed">Completed</option>
-                </select>
-                <button 
-                  className="action-btn remove-btn"
-                  onClick={() => handleRemoveFromWatchlist(item)}
-                >
-                  <MdRemove />
-                </button>
-              </div>
+              <span className="added-label">Added to Watchlist</span>
             )}
           </div>
         </div>
@@ -218,8 +259,8 @@ const MovieSeriesModal: React.FC<MovieSeriesModalProps> = ({ isOpen, onClose }) 
         {items.map(item => (
           <div key={item.id} className="watchlist-item">
             <div className="media-poster">
-              {item.notes ? (
-                <img src={tmdbService.getImageUrl(item.notes, 'w342')!} alt={item.title} />
+              {item.poster_path || item.notes ? (
+                <img src={tmdbService.getImageUrl(item.poster_path || item.notes, 'w342')!} alt={item.title} />
               ) : (
                 <div className="poster-placeholder">
                   {item.type === 'movie' ? <FaFilm /> : <FaTv />}

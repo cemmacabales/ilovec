@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { addSharedTask, fetchSharedTasks } from '../services/supabase';
 import {
   MdClose,
   MdAdd,
@@ -17,7 +18,6 @@ import {
   MdAssignment,
   MdShare
 } from 'react-icons/md';
-
 interface Task {
   id: string;
   title: string;
@@ -37,58 +37,41 @@ interface SharedTasksModalProps {
 }
 
 export default function SharedTasksModal({ isOpen, onClose }: SharedTasksModalProps) {
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      title: 'Plan weekend date night',
-      description: 'Research restaurants and make reservation',
-      isCompleted: false,
-      assignedTo: 'both',
-      priority: 'high',
-      dueDate: '2025-02-15',
-      createdDate: '2025-02-10',
-      category: 'dates'
-    },
-    {
-      id: '2',
-      title: 'Buy groceries for dinner',
-      description: 'Get ingredients for homemade pasta',
-      isCompleted: true,
-      assignedTo: 'me',
-      priority: 'medium',
-      dueDate: '2025-02-12',
-      createdDate: '2025-02-11',
-      completedDate: '2025-02-12',
-      category: 'shopping'
-    },
-    {
-      id: '3',
-      title: 'Book movie tickets',
-      isCompleted: false,
-      assignedTo: 'partner',
-      priority: 'medium',
-      dueDate: '2025-02-16',
-      createdDate: '2025-02-10',
-      category: 'planning'
-    },
-    {
-      id: '4',
-      title: 'Clean the apartment',
-      description: 'Tidy up before date night',
-      isCompleted: false,
-      assignedTo: 'both',
-      priority: 'low',
-      createdDate: '2025-02-11',
-      category: 'household'
-    }
-  ]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+// Map Supabase rows to Task objects
+function mapSupabaseTask(row: any): Task {
+  return {
+    id: row.id,
+    title: row.title ?? row.task,
+    description: row.description ?? row.notes,
+    isCompleted: row.is_completed ?? row.completed ?? false,
+    assignedTo: row.assigned_to ?? 'both',
+    priority: row.priority ?? 'medium',
+    dueDate: row.due_date ?? '',
+    createdDate: row.created_date ?? row.created_at ?? '',
+    completedDate: row.completed_date ?? '',
+    category: row.category ?? 'other'
+  };
+}
 
   const [showAddForm, setShowAddForm] = useState(false);
+
+  // Fetch tasks from Supabase on mount
+  useEffect(() => {
+async function loadTasks() {
+  const { data, error } = await fetchSharedTasks();
+  if (data) setTasks(data.map(mapSupabaseTask));
+  // Optionally handle error
+}
+    loadTasks();
+  }, []);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'pending' | 'completed' | 'me' | 'partner' | 'both'>('all');
   const [sortBy, setSortBy] = useState<'created' | 'due' | 'priority' | 'title'>('created');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   
   const [newTask, setNewTask] = useState<Partial<Task>>({
     title: '',
@@ -142,8 +125,13 @@ export default function SharedTasksModal({ isOpen, onClose }: SharedTasksModalPr
         matchesFilter = task.assignedTo === 'both';
         break;
     }
+
+    let matchesCategory = true;
+    if (selectedCategory) {
+      matchesCategory = task.category === selectedCategory;
+    }
     
-    return matchesSearch && matchesFilter;
+    return matchesSearch && matchesFilter && matchesCategory;
   }).sort((a, b) => {
     switch (sortBy) {
       case 'due':
@@ -161,8 +149,7 @@ export default function SharedTasksModal({ isOpen, onClose }: SharedTasksModalPr
     }
   });
 
-  const { addSharedTask } = require('../services/supabase');
-
+  
   const handleAddTask = async () => {
     if (!newTask.title?.trim()) return;
     await addSharedTask({
@@ -173,7 +160,9 @@ export default function SharedTasksModal({ isOpen, onClose }: SharedTasksModalPr
       dueDate: newTask.dueDate || undefined,
       category: newTask.category as string
     });
-    // Optionally refresh tasks from Supabase here
+    // Instantly refresh tasks from Supabase
+    const { data } = await fetchSharedTasks();
+    if (data) setTasks(data.map(mapSupabaseTask));
     setNewTask({
       title: '',
       description: '',
@@ -182,7 +171,7 @@ export default function SharedTasksModal({ isOpen, onClose }: SharedTasksModalPr
       dueDate: '',
       category: 'other'
     });
-    setShowAddForm(false);
+    setShowAddForm(false); // Close only the add item form, not the modal
   };
 
   const handleEditTask = () => {
@@ -194,19 +183,26 @@ export default function SharedTasksModal({ isOpen, onClose }: SharedTasksModalPr
     setEditingTask(null);
   };
 
-  const toggleTaskComplete = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId 
-        ? { 
-            ...task, 
-            isCompleted: !task.isCompleted,
-            completedDate: !task.isCompleted ? new Date().toISOString().split('T')[0] : undefined
-          }
-        : task
-    ));
+  const toggleTaskComplete = async (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const updated = {
+      ...task,
+      isCompleted: !task.isCompleted,
+      completedDate: !task.isCompleted ? new Date().toISOString().split('T')[0] : undefined
+    };
+    // Persist to Supabase
+    await import('../services/supabase').then(m => m.updateSharedTask(taskId, {
+      is_completed: updated.isCompleted,
+      completed_date: updated.completedDate
+    }));
+    // Refresh tasks from Supabase
+    const { data } = await fetchSharedTasks();
+    if (data) setTasks(data.map(mapSupabaseTask));
   };
 
-  const deleteTask = (taskId: string) => {
+  const deleteTask = async (taskId: string) => {
+    await import('../services/supabase').then(m => m.deleteSharedTask(taskId));
     setTasks(tasks.filter(task => task.id !== taskId));
   };
 
@@ -293,6 +289,15 @@ export default function SharedTasksModal({ isOpen, onClose }: SharedTasksModalPr
                   <option value="partner">Partner's Tasks</option>
                   <option value="both">Shared Tasks</option>
                 </select>
+
+                <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                  <option value="">All Categories</option>
+                  {categories.map(category => (
+                    <option key={category.value} value={category.value}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
                 
                 <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}>
                   <option value="created">Date Created</option>
@@ -361,17 +366,27 @@ export default function SharedTasksModal({ isOpen, onClose }: SharedTasksModalPr
                         {task.isCompleted ? <MdCheck /> : <MdRadioButtonUnchecked />}
                       </button>
                       
-                      <div className="task-meta">
-                        <span className="task-category">
-                          {getCategoryDisplay(task.category)}
-                        </span>
-                        <span 
-                          className="task-priority"
-                          style={{ color: priorities.find(p => p.value === task.priority)?.color }}
-                        >
-                          {task.priority}
-                        </span>
-                      </div>
+                    <div className="task-meta">
+                      <span className="task-category">
+                        {getCategoryDisplay(task.category)}
+                      </span>
+                      <span 
+                        className="task-priority"
+                        style={{ color: priorities.find(p => p.value === task.priority)?.color }}
+                      >
+                        {task.priority}
+                      </span>
+                      <span
+                        className="status-text"
+                        style={{
+                          color: task.isCompleted ? "#10b981" : "#3b82f6",
+                          marginLeft: "8px",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        {task.isCompleted ? "Completed" : "Pending"}
+                      </span>
+                    </div>
                       
                       <div className="task-actions">
                         <button

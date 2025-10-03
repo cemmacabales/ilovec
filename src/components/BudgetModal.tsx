@@ -18,7 +18,6 @@ import {
 } from 'react-icons/md';
 import { useBudget } from '../contexts/BudgetContext';
 import type { Expense, ExpenseCategory, Budget, SavingsGoal } from '../types/budget';
-
 interface BudgetModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -40,6 +39,7 @@ export default function BudgetModal({ isOpen, onClose }: BudgetModalProps) {
     budgets,
     savingsGoals,
     settings,
+    addExpense,
     addBudget,
     addSavingsGoal,
     updateExpense,
@@ -86,18 +86,21 @@ export default function BudgetModal({ isOpen, onClose }: BudgetModalProps) {
     { value: 'other', label: 'Other' }
   ];
 
-  const { addExpense: addExpenseSupabase } = require('../services/supabase');
+  const normalizeString = (value: string | null | undefined) => value ? value.toLowerCase() : '';
 
   const handleAddItem = async () => {
     if (currentView === 'expenses' && newItem.amount && newItem.description) {
-      await addExpenseSupabase({
+      await addExpense({
         amount: parseFloat(newItem.amount),
         category: newItem.category,
         description: newItem.description,
         date: newItem.date,
-        paidBy: newItem.paidBy
+        paidBy: newItem.paidBy,
+        splitType: 'equal',
+        splitPercentage: 50,
+        tags: [],
+        isRecurring: false
       });
-      // Optionally refresh expenses from Supabase here
     } else if (currentView === 'budgets' && newItem.monthlyLimit) {
       addBudget({
         category: newItem.category,
@@ -228,56 +231,87 @@ export default function BudgetModal({ isOpen, onClose }: BudgetModalProps) {
     }).format(amount);
   };
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { 
-      month: 'short', 
+const formatDate = (dateStr: string) => {
+  // Only format if dateStr matches YYYY-MM-DD and is a valid date
+  if (
+    typeof dateStr === 'string' &&
+    /^\d{4}-\d{2}-\d{2}$/.test(dateStr) &&
+    !isNaN(new Date(dateStr).getTime())
+  ) {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
       year: 'numeric'
     });
-  };
+  }
+  return '-';
+};
 
   const getFilteredItems = () => {
+    const normalizedSearch = normalizeString(searchTerm);
+    const normalizedFilter = normalizeString(filterBy);
     let filtered: any[] = [];
-    
+
     if (currentView === 'expenses') {
-      filtered = expenses.filter(expense => {
-        const matchesSearch = expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                             expense.category.toLowerCase().includes(searchTerm.toLowerCase());
+      filtered = expenses.filter((expense) => {
+        const description = normalizeString(expense?.description);
+        const category = normalizeString(expense?.category);
+        const matchesSearch =
+          !normalizedSearch || description.includes(normalizedSearch) || category.includes(normalizedSearch);
+
         let matchesFilter = true;
-        
+
         if (filterBy === 'partner1' || filterBy === 'partner2') {
           matchesFilter = expense.paidBy === filterBy;
         } else if (filterBy !== 'all') {
-          matchesFilter = expense.category === filterBy;
+          matchesFilter = category === normalizedFilter;
         }
-        
+
         return matchesSearch && matchesFilter;
       });
     } else if (currentView === 'budgets') {
-      filtered = budgets.filter(budget => {
-        return budget.category.toLowerCase().includes(searchTerm.toLowerCase());
+      filtered = budgets.filter((budget) => {
+        const category = normalizeString(budget?.category);
+        return !normalizedSearch || category.includes(normalizedSearch);
       });
     } else if (currentView === 'goals') {
-      filtered = savingsGoals.filter(goal => {
-        return goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               goal.category.toLowerCase().includes(searchTerm.toLowerCase());
+      filtered = savingsGoals.filter((goal) => {
+        const title = normalizeString(goal?.title);
+        const category = normalizeString(goal?.category);
+        return (
+          !normalizedSearch ||
+          title.includes(normalizedSearch) ||
+          category.includes(normalizedSearch)
+        );
       });
     }
 
-    // Sort items
     return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'amount':
-          if (currentView === 'expenses') return b.amount - a.amount;
-          if (currentView === 'budgets') return b.monthlyLimit - a.monthlyLimit;
-          if (currentView === 'goals') return b.targetAmount - a.targetAmount;
+          if (currentView === 'expenses') return (b.amount || 0) - (a.amount || 0);
+          if (currentView === 'budgets') return (b.monthlyLimit || 0) - (a.monthlyLimit || 0);
+          if (currentView === 'goals') return (b.targetAmount || 0) - (a.targetAmount || 0);
           return 0;
-        case 'category':
-          return (a.category || a.title || '').localeCompare(b.category || b.title || '');
+        case 'category': {
+          const valueA = normalizeString((a.category ?? a.title ?? '') as string);
+          const valueB = normalizeString((b.category ?? b.title ?? '') as string);
+          return valueA.localeCompare(valueB);
+        }
         case 'date':
         default:
-          if (currentView === 'expenses') return new Date(b.date).getTime() - new Date(a.date).getTime();
-          if (currentView === 'goals' && a.targetDate && b.targetDate) return new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime();
+          if (currentView === 'expenses') {
+            return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime();
+          }
+          if (
+            currentView === 'goals' &&
+            'targetDate' in a &&
+            'targetDate' in b &&
+            a.targetDate &&
+            b.targetDate
+          ) {
+            return new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime();
+          }
           return 0;
       }
     });
@@ -306,7 +340,12 @@ export default function BudgetModal({ isOpen, onClose }: BudgetModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div
+      className="modal-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="budget-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="header-left">
@@ -488,10 +527,12 @@ export default function BudgetModal({ isOpen, onClose }: BudgetModalProps) {
                             <div className="progress-bar">
                               <div 
                                 className="progress-fill"
-                                style={{ width: `${Math.min(getBudgetUtilization(item.category), 100)}%` }}
+                                style={{ width: `${Math.min(item.monthlyLimit > 0 ? (getExpensesByCategory(item.category).reduce((sum, exp) => sum + exp.amount, 0) / item.monthlyLimit) * 100 : 0, 100)}%` }}
                               />
                             </div>
-                            <span className="progress-text">{getBudgetUtilization(item.category).toFixed(1)}% used</span>
+                            <span className="progress-text">
+                              {item.monthlyLimit > 0 ? ((getExpensesByCategory(item.category).reduce((sum, exp) => sum + exp.amount, 0) / item.monthlyLimit) * 100).toFixed(1) : '0.0'}% used
+                            </span>
                           </div>
                         </div>
                       </>
@@ -758,7 +799,7 @@ export default function BudgetModal({ isOpen, onClose }: BudgetModalProps) {
                     disabled={
                       (currentView === 'expenses' && (!newItem.amount?.trim() || !newItem.description?.trim())) ||
                       (currentView === 'budgets' && !newItem.monthlyLimit?.trim()) ||
-                      (currentView === 'goals' && (!newItem.title?.trim() || !newItem.targetAmount?.trim()))
+                      (currentView === 'goals' && (!newItem.title?.trim() || !newItem.targetAmount?.trim() || !newItem.targetDate?.trim()))
                     }
                   >
                     {editingExpense || editingBudget || editingGoal ? 'Save Changes' : `Add ${currentView === 'expenses' ? 'Expense' : currentView === 'budgets' ? 'Budget' : 'Goal'}`}

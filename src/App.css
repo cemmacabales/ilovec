@@ -1,4 +1,45 @@
-/* Reset and base styles */
+/* Reset and base styles */.added-btn {
+  background: linear-gradient(90deg,#43e97b 0%,#38f9d7 100%);
+  color: #fff !important;
+  border-radius: 999px;
+  box-shadow: 0 4px 24px rgba(67,233,123,0.35), 0 0 0 4px rgba(67,233,123,0.12);
+  font-weight: 700;
+  font-size: 1.1em;
+  padding: 0.6em 1.4em;
+  opacity: 1;
+  transform: scale(1.12);
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  animation: bounceAdded 0.7s, fadeInAdded 0.5s;
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes fadeInAdded {
+  from { opacity: 0; transform: scale(0.95);}
+  to { opacity: 1; transform: scale(1);}
+}
+
+@keyframes bounceAdded {
+  0% { transform: scale(0.9);}
+  40% { transform: scale(1.15);}
+  60% { transform: scale(1.08);}
+  100% { transform: scale(1.12);}
+}
+
+.added-label {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.05em;
+  color: #43e97b;
+  background: #e6fff3;
+  border-radius: 999px;
+  padding: 0.4em 1em;
+  box-shadow: 0 2px 8px rgba(67,233,123,0.10);
+  margin-left: 4px;
+}
 * {
   margin: 0;
   padding: 0;

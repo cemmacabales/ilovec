@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { addBucketListItem } from '../services/supabase';
 import {
   MdClose,
   MdAdd,
@@ -38,7 +39,8 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
     settings,
     updateItem,
     deleteItem,
-    updateProgress
+    updateProgress,
+    setItems
   } = useBucketList();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -355,12 +357,12 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
                       
                       <div className="task-details">
                         <div className="task-assignee">
-                          <span 
-                            className="status-badge"
-                            style={{ backgroundColor: getStatusColor(item.status) }}
-                          >
-                            {item.status.replace('_', ' ')}
-                          </span>
+<span 
+  className="status-badge"
+  style={{ backgroundColor: getStatusColor(item.status || 'not_started') }}
+>
+  {(item.status || 'not_started').replace('_', ' ')}
+</span>
                         </div>
                         
                         {item.targetDate && (
@@ -412,13 +414,13 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
                       </div>
 
                       {/* Tags */}
-                      {item.tags.length > 0 && (
-                        <div className="bucket-item-tags">
-                          {item.tags.map(tag => (
-                            <span key={tag} className="tag">{tag}</span>
-                          ))}
-                        </div>
-                      )}
+{Array.isArray(item.tags) && item.tags.length > 0 && (
+  <div className="bucket-item-tags">
+    {item.tags.map(tag => (
+      <span key={tag} className="tag">{tag}</span>
+    ))}
+  </div>
+)}
                     </div>
                   </div>
                 ))}
@@ -443,37 +445,41 @@ export default function BucketListModal({ isOpen, onClose }: BucketListModalProp
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
                   
-                  const itemData = {
-                    title: formData.get('title') as string,
-                    description: formData.get('description') as string,
-                    category: formData.get('category') as BucketListCategory,
-                    priority: formData.get('priority') as Priority,
-                    status: 'not_started' as ItemStatus,
-                    difficulty: formData.get('difficulty') as Difficulty,
-                    estimatedCost: formData.get('estimatedCost') ? parseFloat(formData.get('estimatedCost') as string) : undefined,
-                    currency: 'USD',
-                    targetDate: formData.get('targetDate') ? new Date(formData.get('targetDate') as string) : undefined,
-                    completedDate: undefined,
-                    progress: 0,
-                    subGoals: [],
-                    tags: (formData.get('tags') as string)?.split(',').map(tag => tag.trim()).filter(Boolean) || [],
-                    location: formData.get('location') as string || undefined,
-                    notes: formData.get('notes') as string || undefined,
-                    inspiration: undefined,
-                    timeToComplete: undefined,
-                    seasonality: undefined,
-                    prerequisites: [],
-                    resources: [],
-                    milestones: [],
-                    reminderDate: undefined,
-                    isArchived: false,
-                    isFavorite: false,
-                  };
+const itemData = {
+  title: formData.get('title') as string,
+  description: formData.get('description') as string,
+  category: formData.get('category') as BucketListCategory,
+  priority: formData.get('priority') as Priority,
+  status: 'not_started' as ItemStatus,
+  difficulty: formData.get('difficulty') as Difficulty,
+  estimatedCost: formData.get('estimatedCost') ? parseFloat(formData.get('estimatedCost') as string) : undefined,
+  currency: 'USD',
+  targetDate: formData.get('targetDate') ? (formData.get('targetDate') as string) : undefined,
+  completedDate: undefined,
+  progress: 0,
+  subGoals: [],
+  tags: (formData.get('tags') as string)?.split(',').map(tag => tag.trim()).filter(Boolean) || [],
+  location: formData.get('location') as string || undefined,
+  notes: formData.get('notes') as string || undefined,
+  inspiration: undefined,
+  timeToComplete: undefined,
+  seasonality: undefined,
+  prerequisites: [],
+  resources: [],
+  milestones: [],
+  reminderDate: undefined,
+  isArchived: false,
+  isFavorite: false,
+};
                   
-                  const { addBucketListItem } = require('../services/supabase');
-                  await addBucketListItem(itemData);
-                  // Optionally refresh items from Supabase here
-                  setShowAddForm(false);
+await addBucketListItem(itemData);
+// Instantly refresh items from Supabase
+const { data } = await import('../services/supabase').then(m => m.fetchBucketListItems());
+if (data) {
+  // Update items in context so modal reflects new item instantly
+  setItems(data);
+}
+setShowAddForm(false); // Only close the add item form, not the modal
                 }}>
                   <div className="form-group">
                     <label>Title *</label>

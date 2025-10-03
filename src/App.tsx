@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
+/*
+TODO: Link Movie/Series Tracker (TMDB API) to Supabase
+
+- [ ] Analyze current movie/series tracker logic
+- [ ] Design Supabase schema for movies/series
+- [ ] Implement Supabase sync logic (add, fetch, update, delete)
+- [ ] Update UI to reflect Supabase state
+- [ ] Test integration
+- [ ] Verify results
+*/
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './App.css';
-import { 
-  MdDateRange, 
-  MdPhotoLibrary, 
-  MdAccountBalanceWallet, 
-  MdChecklist,
-  MdClose,
-  MdAdd,
-  MdCheck
-} from 'react-icons/md';
-import { FaMusic, FaFilm, FaListUl } from 'react-icons/fa';
+import { CalendarDays, Image, Wallet, ListChecks, X, Plus, Check, Music, Film, List } from 'lucide-react';
 import GalleryModal from './components/GalleryModal';
 import MusicModal from './components/MusicModal';
 import MovieSeriesModal from './components/MovieSeriesModal';
@@ -20,7 +21,7 @@ import BucketListModal from './components/BucketListModal';
 import SharedTasksModal from './components/SharedTasksModal';
 import { WatchlistProvider } from './contexts/WatchlistContext';
 import { BudgetProvider, useBudget } from './contexts/BudgetContext';
-import { BucketListProvider } from './contexts/BucketListContext';
+import { BucketListProvider, useBucketList } from './contexts/BucketListContext';
 import { addEvent, fetchEvents } from './services/supabase';
 
 interface Event {
@@ -49,7 +50,30 @@ function AppContent() {
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isBucketListModalOpen, setIsBucketListModalOpen] = useState(false);
   const [isSharedTasksModalOpen, setIsSharedTasksModalOpen] = useState(false);
+
+  // Movie Series Tracker count
+  const [movieSeriesInProgress, setMovieSeriesInProgress] = useState(0);
+  React.useEffect(() => {
+    (async () => {
+      const { data } = await import('./services/supabase').then(m => m.fetchMovieSeries());
+      if (data) {
+        setMovieSeriesInProgress(data.filter((item: any) => item.status === 'watching').length);
+      }
+    })();
+  }, [isMovieModalOpen]);
+
+  // Refetch shared tasks when modal closes
+  React.useEffect(() => {
+    if (!isSharedTasksModalOpen) {
+      (async () => {
+        const { data } = await import('./services/supabase').then(m => m.fetchSharedTasks());
+        setSharedTasks(data || []);
+      })();
+    }
+  }, [isSharedTasksModalOpen]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [sharedTasks, setSharedTasks] = useState<any[]>([]);
+  const sharedTasksPendingCount = sharedTasks.filter(t => !t.is_completed).length;
   const [showAddForm, setShowAddForm] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', date: '', time: '', location: '' });
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -120,6 +144,11 @@ function AppContent() {
       const { data } = await fetchEvents();
       setEvents(data || []);
     })();
+    // Fetch shared tasks from Supabase on mount
+    (async () => {
+      const { data } = await import('./services/supabase').then(m => m.fetchSharedTasks());
+      setSharedTasks(data || []);
+    })();
   }, []);
 
   const formatTime = (timeStr: string) => {
@@ -148,31 +177,31 @@ function AppContent() {
           {/* Header */}
           <div className="header">
             <h1 className="title">I Love C</h1>
-            <div className="categories-link">
-              <MdChecklist className="categories-icon" />
-              <span>Categories</span>
-            </div>
+<div className="categories-link">
+  <ListChecks className="categories-icon" />
+  <span>Categories</span>
+</div>
           </div>
 
           {/* Category Cards Grid */}
           <div className="category-grid">
             {/* Row 1 - Large Cards */}
-            <div className="category-card large" onClick={openModal}>
-              <div className="category-icon">
-                <MdDateRange />
-              </div>
-              <h3>Upcoming Dates</h3>
+<div className="category-card large" onClick={openModal}>
+  <div className="category-icon">
+    <CalendarDays />
+  </div>
+  <h3>Upcoming Dates</h3>
               <p className="category-description">Events you're planning together - dinner, trips, movies</p>
               <div className="category-status">
                 <span className="status-text">{events.length} upcoming events</span>
               </div>
             </div>
 
-            <div className="category-card large" onClick={openGalleryModal}>
-              <div className="category-icon">
-                <MdPhotoLibrary />
-              </div>
-              <h3>Gallery</h3>
+<div className="category-card large" onClick={openGalleryModal}>
+  <div className="category-icon">
+    <Image />
+  </div>
+  <h3>Gallery</h3>
               <p className="category-description">Photo uploads of past dates with tags</p>
               <div className="category-status">
                 <span className="status-text">24 memories saved</span>
@@ -180,58 +209,64 @@ function AppContent() {
             </div>
 
             {/* Row 2 - Small Cards */}
-            <div className="category-card small" onClick={openMusicModal} style={{ cursor: 'pointer' }}>
-              <div className="category-icon">
-                <FaMusic />
-              </div>
-              <h3>Music Playlist</h3>
+<div className="category-card small" onClick={openMusicModal} style={{ cursor: 'pointer' }}>
+  <div className="category-icon">
+    <Music />
+  </div>
+  <h3>Music Playlist</h3>
               <p className="category-description">Shared songs and couple's soundtrack</p>
               <div className="category-status">
                 <span className="status-text">Apple Music Player</span>
               </div>
             </div>
 
-            <div className="category-card small" onClick={openMovieModal} style={{ cursor: 'pointer' }}>
-              <div className="category-icon">
-                <FaFilm />
-              </div>
-              <h3>Movie Series Tracker</h3>
-              <p className="category-description">Track shows and movies to watch together</p>
-              <div className="category-status">
-                <span className="status-text">6 in progress</span>
-              </div>
-            </div>
+<div className="category-card small" onClick={openMovieModal} style={{ cursor: 'pointer' }}>
+  <div className="category-icon">
+    <Film />
+  </div>
+  <h3>Movie Series Tracker</h3>
+  <p className="category-description">Track shows and movies to watch together</p>
+  <div className="category-status">
+    <span className="status-text">
+      {movieSeriesInProgress} in progress
+    </span>
+  </div>
+</div>
 
-            <div className="category-card small" onClick={openBudgetModal} style={{ cursor: 'pointer' }}>
-              <div className="category-icon">
-                <MdAccountBalanceWallet />
-              </div>
-              <h3>Budget Tracker</h3>
+<div className="category-card small" onClick={openBudgetModal} style={{ cursor: 'pointer' }}>
+  <div className="category-icon">
+    <Wallet />
+  </div>
+  <h3>Budget Tracker</h3>
               <p className="category-description">Estimated vs actual expenses</p>
               <div className="category-status">
                 <span className="status-text">{formatCurrency(totalSpent)} this month</span>
               </div>
             </div>
 
-            <div className="category-card small" onClick={openBucketListModal} style={{ cursor: 'pointer' }}>
-              <div className="category-icon">
-                <FaListUl />
-              </div>
-              <h3>Bucket List</h3>
+<div className="category-card small" onClick={openBucketListModal} style={{ cursor: 'pointer' }}>
+  <div className="category-icon">
+    <List />
+  </div>
+  <h3>Bucket List</h3>
               <p className="category-description">Adventures and experiences to share</p>
               <div className="category-status">
-                <span className="status-text">12 goals</span>
+                <span className="status-text">
+                  {useBucketList().stats.totalItems} goals
+                </span>
               </div>
             </div>
 
-            <div className="category-card small" onClick={openSharedTasksModal} style={{ cursor: 'pointer' }}>
-              <div className="category-icon">
-                <MdChecklist />
-              </div>
-              <h3>Shared Tasks</h3>
+<div className="category-card small" onClick={openSharedTasksModal} style={{ cursor: 'pointer' }}>
+  <div className="category-icon">
+    <ListChecks />
+  </div>
+  <h3>Shared Tasks</h3>
               <p className="category-description">To-dos for both of you</p>
               <div className="category-status">
-                <span className="status-text">4 pending</span>
+                <span className="status-text">
+                  {sharedTasksPendingCount} pending
+                </span>
               </div>
             </div>
           </div>
@@ -250,7 +285,7 @@ function AppContent() {
                 <div className="date-details">
                   <h3>Dinner at Sunset Bistro</h3>
                   <p>7:30 PM • Downtown</p>
-                  <p>Reservation confirmed <MdCheck /></p>
+                  <p>Reservation confirmed <Check /></p>
                 </div>
               </div>
             </div>
@@ -258,10 +293,10 @@ function AppContent() {
             {/* Recent Activity */}
             <div className="activity-section">
               <h2>Recent Activity</h2>
-              <div className="activity-header">
-                <MdDateRange className="activity-icon" />
-                <span>Latest Updates</span>
-              </div>
+<div className="activity-header">
+  <CalendarDays className="activity-icon" />
+  <span>Latest Updates</span>
+</div>
               
               <div className="activity-items">
                 <div className="activity-item">
@@ -316,9 +351,9 @@ function AppContent() {
           <div className={`modal-content ${isClosing ? 'modal-content-closing' : ''}`} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Upcoming Dates</h2>
-              <button className="close-button" onClick={closeModal}>
-                <MdClose />
-              </button>
+<button className="close-button" onClick={closeModal}>
+  <X />
+</button>
             </div>
             
             <div className="modal-body">
@@ -349,17 +384,17 @@ function AppContent() {
                       <h3>Events for {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '…'}</h3>
                       <span className="events-count">{selectedDate ? events.filter(e => e.date === selectedDateStr).length : events.length} {selectedDate ? 'event(s)' : 'total'}</span>
                     </div>
-                    <button 
-                      className="add-event-button"
-                      onClick={() => {
-                        setShowAddForm(!showAddForm);
-                        if (!showAddForm && selectedDateStr) {
-                          setNewEvent({ ...newEvent, date: selectedDateStr });
-                        }
-                      }}
-                    >
-                      <MdAdd /> Add Event
-                    </button>
+<button 
+  className="add-event-button"
+  onClick={() => {
+    setShowAddForm(!showAddForm);
+    if (!showAddForm && selectedDateStr) {
+      setNewEvent({ ...newEvent, date: selectedDateStr });
+    }
+  }}
+>
+  <Plus /> Add Event
+</button>
                   </div>
                   {showAddForm && (
                     <div className="add-event-form">
@@ -408,27 +443,27 @@ function AppContent() {
     return list.map((event) => (
       <div key={event.id} className="event-card">
         <div className="event-header">
-          <button className="event-checkbox">
-            <MdCheck />
-          </button>
+<button className="event-checkbox">
+  <Check />
+</button>
           <div className="event-actions">
-            <button className="edit-btn">
-              <MdAdd />
-            </button>
-            <button className="delete-btn">
-              <MdClose />
-            </button>
+<button className="edit-btn">
+  <Plus />
+</button>
+<button className="delete-btn">
+  <X />
+</button>
           </div>
         </div>
         <div className="event-content">
           <h4 className="event-title">{event.title}</h4>
           <div className="event-meta">
-            <span className="event-date"><MdDateRange /> {formatDate(event.date)}</span>
-            <span className="event-time"><MdDateRange /> {formatTime(event.time)}</span>
-            {event.location && <span className="event-location"><MdDateRange /> {event.location}</span>}
-            {selectedDate && event.date === selectedDateStr && (
-              <span className="selected-label">Selected</span>
-            )}
+<span className="event-date"><CalendarDays /> {formatDate(event.date)}</span>
+<span className="event-time"><CalendarDays /> {formatTime(event.time)}</span>
+{event.location && <span className="event-location"><CalendarDays /> {event.location}</span>}
+{selectedDate && event.date === selectedDateStr && (
+  <span className="selected-label">Selected</span>
+)}
           </div>
         </div>
       </div>

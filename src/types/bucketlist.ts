@@ -193,6 +193,7 @@ export interface BucketListContextType {
   
   // Settings
   updateSettings: (settings: Partial<BucketListSettings>) => void;
+  setItems: (items: BucketListItem[]) => void;
   
   // Analytics and insights
   getInsights: () => BucketListInsights;
