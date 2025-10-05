@@ -7,10 +7,31 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Upcoming Dates CRUD
-export async function addEvent(event: { title: string; date: string; time: string; location?: string }) {
+export async function addEvent(event: { title: string; date: string; time: string; location?: string; event_complete?: boolean }) {
   return supabase
     .from('upcoming_dates')
-    .insert([{ title: event.title, event_date: event.date, description: event.location, created_at: new Date().toISOString() }]);
+    .insert([{
+      title: event.title,
+      event_date: event.date,
+      event_time: event.time,
+      location: event.location,
+      event_complete: event.event_complete ?? false,
+      created_at: new Date().toISOString()
+    }]);
+}
+
+export async function updateEventComplete(id: string, complete: boolean) {
+  return supabase
+    .from('upcoming_dates')
+    .update({ event_complete: complete })
+    .eq('id', id);
+}
+
+export async function updateEvent(id: string, updates: Partial<{ title: string; event_date: string; event_time: string; location: string }>) {
+  return supabase
+    .from('upcoming_dates')
+    .update(updates)
+    .eq('id', id);
 }
 
 export async function fetchEvents() {
@@ -18,7 +39,22 @@ export async function fetchEvents() {
     .from('upcoming_dates')
     .select('*')
     .order('event_date', { ascending: true });
+  // Ensure location is present in returned data
+  if (data) {
+    data.forEach((event: any) => {
+      if (!event.location && event.description) {
+        event.location = event.description;
+      }
+    });
+  }
   return { data, error };
+}
+
+export async function deleteEvent(id: string) {
+  return supabase
+    .from('upcoming_dates')
+    .delete()
+    .eq('id', id);
 }
 
 // Movie Series Tracker CRUD

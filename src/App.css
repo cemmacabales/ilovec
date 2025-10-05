@@ -482,7 +482,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1212,10 +1212,10 @@ body {
 .modal-content {
   background: white;
   border-radius: 20px;
-  width: 96%;
-  max-width: 900px;
-  max-height: 540px;
-  min-height: 400px;
+  width: 98%;
+  max-width: 1200px;
+  max-height: 800px;
+  min-height: 600px;
   overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   /* Hide scrollbar for Webkit browsers */
@@ -1536,13 +1536,42 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  transition: all 0.3s ease;
   position: relative;
+  overflow: hidden;
+}
+
+.event-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #d4a574, #c19660);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
 }
 
 .event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   border-color: #d4a574;
-  box-shadow: 0 6px 18px rgba(212, 165, 116, 0.12);
+}
+
+.event-card:hover::before {
+  transform: scaleX(1);
+}
+
+.event-card.completed {
+  background: #f8fffe;
+  border-color: #10b981;
+  opacity: 0.85;
+}
+
+.event-card.completed::before {
+  background: linear-gradient(135deg, #10b981, #059669);
+  transform: scaleX(1);
 }
 
 .event-header {
@@ -1563,19 +1592,43 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  color: #d4a574;
-  transition: border-color 0.2s, background 0.2s;
+  color: white;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .event-checkbox:hover {
   border-color: #d4a574;
-  background: rgba(212, 165, 116, 0.08);
+  background: rgba(212, 165, 116, 0.1);
+}
+
+.event-checkbox[aria-checked="true"] {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-color: #10b981;
+  animation: checkmark 0.3s ease;
+}
+
+@keyframes checkmark {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .event-actions {
   display: flex;
   gap: 6px;
-  opacity: 0.7;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.event-card:hover .event-actions {
+  opacity: 1;
 }
 
 .event-actions button {
@@ -1610,6 +1663,12 @@ body {
   font-weight: 600;
   color: #2c3e50;
   margin-bottom: 2px;
+  transition: all 0.3s ease;
+}
+
+.event-card.completed .event-title {
+  text-decoration: line-through;
+  color: #6b7280;
 }
 
 .event-meta {
@@ -1627,6 +1686,14 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
+  color: #6b6358;
+  font-size: 13px;
+}
+
+.event-location svg {
+  width: 14px;
+  height: 14px;
+  color: #d4a574;
 }
 
 .selected-label {
