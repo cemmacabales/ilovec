@@ -18,12 +18,30 @@ import { addExpense as supabaseAddExpense, fetchExpenses as supabaseFetchExpense
 
 const defaultSettings: BudgetSettings = {
   currency: 'PHP',
-  partner1Name: 'Partner 1',
-  partner2Name: 'Partner 2',
+  partner1Name: 'Him',
+  partner2Name: 'Her',
   monthlyIncome: 0,
   alertsEnabled: true,
   emailNotifications: false,
 };
+
+
+// Supabase rows store the description in `item` and who paid in `notes`.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapExpenseRow(row: any): Expense {
+  const rawDate = row.date || row.created_at;
+  const match = typeof rawDate === 'string' ? rawDate.match(/^\d{4}-\d{2}-\d{2}/) : null;
+  return {
+    id: String(row.id),
+    amount: Number(row.amount) || 0,
+    category: row.category ?? 'other',
+    description: row.description ?? row.item ?? '',
+    date: match ? match[0] : '',
+    paidBy: row.paidBy ?? (row.notes === 'partner2' ? 'partner2' : 'partner1'),
+    splitType: row.split_type ?? 'equal',
+    tags: Array.isArray(row.tags) ? row.tags : [],
+  };
+}
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
@@ -46,6 +64,7 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
   const [financialGoals, setFinancialGoals] = useState<FinancialGoal[]>([]);
   const [customReports, setCustomReports] = useState<CustomReport[]>([]);
   const [settings, setSettings] = useState<BudgetSettings>(defaultSettings);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load expenses, budgets, and savings goals from Supabase on mount
   useEffect(() => {
@@ -53,18 +72,7 @@ export const BudgetProvider: React.FC<BudgetProviderProps> = ({ children }) => {
       // Expenses
       const { data: expenseData, error: expenseError } = await supabaseFetchExpenses();
       if (!expenseError && expenseData) {
-setExpenses(expenseData.map((expense: any) => ({
-  ...expense,
-  date: (() => {
-    const rawDate = expense.date || expense.created_at;
-    if (typeof rawDate === 'string') {
-      // If ISO format, convert to YYYY-MM-DD
-      const match = rawDate.match(/^\d{4}-\d{2}-\d{2}/);
-      return match ? match[0] : rawDate;
-    }
-    return '';
-  })()
-})));
+setExpenses(expenseData.map(mapExpenseRow));
       }
       // Budgets
       const { data: budgetData, error: budgetError } = await import('../services/supabase').then(m => m.fetchBudgets());
@@ -92,7 +100,7 @@ setExpenses(expenseData.map((expense: any) => ({
         })));
       }
     }
-    loadAll();
+    loadAll().finally(() => setIsLoaded(true));
   }, []);
 
   // Remove localStorage sync for expenses (now handled by Supabase)
@@ -210,17 +218,7 @@ setExpenses(expenseData.map((expense: any) => ({
 
     // Refetch expenses from Supabase
     const { data } = await supabaseFetchExpenses();
-    if (data) setExpenses(data.map((expense: any) => ({
-  ...expense,
-  date: (() => {
-    const rawDate = expense.date || expense.created_at;
-    if (typeof rawDate === 'string') {
-      const match = rawDate.match(/^\d{4}-\d{2}-\d{2}/);
-      return match ? match[0] : rawDate;
-    }
-    return '';
-  })()
-})));
+    if (data) setExpenses(data.map(mapExpenseRow));
 
     // Update budget current spent
     const budget = budgets.find(b => b.category === expense.category);
@@ -250,17 +248,7 @@ setExpenses(expenseData.map((expense: any) => ({
 
     // Refetch expenses from Supabase
     const { data } = await supabaseFetchExpenses();
-    if (data) setExpenses(data.map((expense: any) => ({
-  ...expense,
-  date: (() => {
-    const rawDate = expense.date || expense.created_at;
-    if (typeof rawDate === 'string') {
-      const match = rawDate.match(/^\d{4}-\d{2}-\d{2}/);
-      return match ? match[0] : rawDate;
-    }
-    return '';
-  })()
-})));
+    if (data) setExpenses(data.map(mapExpenseRow));
 
     // Update budget if category or amount changed
     if (updates.category || updates.amount) {
@@ -294,17 +282,7 @@ setExpenses(expenseData.map((expense: any) => ({
 
     // Refetch expenses from Supabase
     const { data } = await supabaseFetchExpenses();
-    if (data) setExpenses(data.map((expense: any) => ({
-  ...expense,
-  date: (() => {
-    const rawDate = expense.date || expense.created_at;
-    if (typeof rawDate === 'string') {
-      const match = rawDate.match(/^\d{4}-\d{2}-\d{2}/);
-      return match ? match[0] : rawDate;
-    }
-    return '';
-  })()
-})));
+    if (data) setExpenses(data.map(mapExpenseRow));
 
     // Update budget current spent
     const budget = budgets.find(b => b.category === expense.category);
@@ -807,7 +785,8 @@ setExpenses(expenseData.map((expense: any) => ({
 
   // Utility functions
   const getTotalSpentThisMonth = () => {
-    const currentMonth = new Date().toISOString().slice(0, 7);
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     return getExpensesByDateRange(currentMonth + '-01', currentMonth + '-31')
       .reduce((sum, expense) => sum + expense.amount, 0);
   };
@@ -896,6 +875,7 @@ setExpenses(expenseData.map((expense: any) => ({
   };
 
   const contextValue: BudgetContextType = {
+    isLoaded,
     expenses,
     budgets,
     savingsGoals,

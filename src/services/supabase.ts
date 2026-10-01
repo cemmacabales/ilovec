@@ -1,10 +1,13 @@
 // src/services/supabase.ts
 import { createClient } from '@supabase/supabase-js';
+import { trackedFetch } from '../lib/connection';
 
 const supabaseUrl = 'https://jdzbrpylffaeyvxadkxd.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkemJycHlsZmZhZXl2eGFka3hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0ODY4NTQsImV4cCI6MjA3NTA2Mjg1NH0.GrPyAEO-rrBcH3FZAfODL3OO0DoKzS408_0CdzYInzc';
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  global: { fetch: trackedFetch },
+});
 
 // Upcoming Dates CRUD
 export async function addEvent(event: { title: string; date: string; time: string; location?: string; event_complete?: boolean }) {
@@ -317,11 +320,17 @@ export async function deleteSharedTask(id: string) {
     .eq('id', id);
 }
 
-// Update Shared Task status and completed date
-export async function updateSharedTask(id: string, updates: Partial<{ is_completed: boolean; completed_date?: string }>) {
+// Update a shared task. Uses the same columns addSharedTask writes.
+export async function updateSharedTask(id: string, updates: Partial<{ title: string; description: string; assignedTo: string; priority: string; dueDate: string | null; category: string; is_completed: boolean; completed_date: string | null }>) {
   return supabase
     .from('shared_tasks')
     .update({
+      ...(updates.title !== undefined ? { task: updates.title } : {}),
+      ...(updates.description !== undefined ? { notes: updates.description } : {}),
+      ...(updates.assignedTo !== undefined ? { assigned_to: updates.assignedTo } : {}),
+      ...(updates.priority !== undefined ? { priority: updates.priority } : {}),
+      ...(updates.dueDate !== undefined ? { due_date: updates.dueDate } : {}),
+      ...(updates.category !== undefined ? { category: updates.category } : {}),
       ...(updates.is_completed !== undefined ? { is_completed: updates.is_completed } : {}),
       ...(updates.completed_date !== undefined ? { completed_date: updates.completed_date } : {}),
     })
