@@ -1,0 +1,1 @@
+alter table budget_tracker add column paid_by text, add column split_type text, add column split_percentage integer default 50, add column tags text[] default '{}', add column is_recurring boolean default false;

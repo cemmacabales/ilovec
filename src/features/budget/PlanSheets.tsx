@@ -5,8 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { ConfirmButton } from '../../components/ui/Feedback';
 import { FieldGroup, FormError, InputRow, SelectRow, TitleInput } from '../../components/ui/Fields';
 import { SAVE_FAILED, useToast } from '../../components/ui/Toast';
-import { useBudget } from '../../contexts/BudgetContext';
-import type { Budget, ExpenseCategory, SavingsGoal } from '../../types/budget';
+import { useBudgets, useSavingsGoals, type Budget, type ExpenseCategory, type SavingsGoal } from '../../data/budget';
 import { EXPENSE_CATEGORIES } from './categories';
 
 const GOAL_KINDS: { value: SavingsGoal['category']; label: string }[] = [
@@ -26,7 +25,7 @@ export function LimitSheet({ open, onClose, editing }: { open: boolean; onClose:
 }
 
 function LimitForm({ editing, onDone }: { editing?: Budget | null; onDone: () => void }) {
-  const { addBudget, updateBudget, deleteBudget } = useBudget();
+  const { set: saveLimit, update: updateBudget, remove: deleteBudget } = useBudgets();
   const toast = useToast();
   const [category, setCategory] = useState<ExpenseCategory>(editing?.category ?? 'restaurants');
   const [limit, setLimit] = useState(editing ? String(editing.monthlyLimit) : '');
@@ -42,7 +41,7 @@ function LimitForm({ editing, onDone }: { editing?: Budget | null; onDone: () =>
     setSaving(true);
     try {
       if (editing) await updateBudget(editing.id, { category, monthlyLimit: value });
-      else await addBudget({ category, monthlyLimit: value, alertThreshold: 80, isActive: true });
+      else await saveLimit(category, value);
       toast('Limit saved');
       onDone();
     } catch {
@@ -116,7 +115,7 @@ export function GoalSheet({ open, onClose, editing }: { open: boolean; onClose: 
 }
 
 function GoalForm({ editing, onDone }: { editing?: SavingsGoal | null; onDone: () => void }) {
-  const { addSavingsGoal, updateSavingsGoal, deleteSavingsGoal } = useBudget();
+  const { add: addSavingsGoal, update: updateSavingsGoal, remove: deleteSavingsGoal } = useSavingsGoals();
   const toast = useToast();
   const [title, setTitle] = useState(editing?.title ?? '');
   const [target, setTarget] = useState(editing ? String(editing.targetAmount) : '');

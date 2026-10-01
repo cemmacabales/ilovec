@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
-import { addEvent, deleteEvent, fetchEvents, updateEvent, updateEventComplete } from '../services/supabase';
-import { useQuery, setQueryData, invalidate } from '../lib/query';
+import { supabase } from '../services/supabase';
+import type { Tables } from '../types/database';
+import { mutate, setQueryData, useQuery } from '../lib/query';
 import { parseDay, todayKey } from '../lib/format';
 
 export interface DateEvent {
@@ -12,37 +13,29 @@ export interface DateEvent {
   done: boolean;
 }
 
-const KEY = 'events';
+const KEY = 'dates';
 
-interface EventRow {
-  id: string;
-  title?: string;
-  event_date?: string;
-  date?: string;
-  event_time?: string;
-  time?: string;
-  location?: string;
-  description?: string;
-  event_complete?: boolean;
-}
-
-function toEvent(row: EventRow): DateEvent {
+function toEvent(row: Tables<'dates'>): DateEvent {
   return {
-    id: String(row.id),
-    title: row.title ?? 'Untitled',
-    date: (row.event_date ?? row.date ?? '').slice(0, 10),
-    time: (row.event_time ?? row.time ?? '').slice(0, 5),
-    location: row.location ?? row.description ?? '',
-    done: !!row.event_complete,
+    id: row.id,
+    title: row.title,
+    date: row.day,
+    time: (row.start_time ?? '').slice(0, 5),
+    location: row.location,
+    done: row.done,
   };
 }
 
 async function load() {
-  const { data, error } = await fetchEvents();
-  return { data: data ? (data as EventRow[]).map(toEvent) : null, error };
+  const { data, error } = await supabase.from('dates').select('*').order('day');
+  return { data: data ? data.map(toEvent) : null, error };
 }
 
 export type EventInput = Pick<DateEvent, 'title' | 'date' | 'time' | 'location'>;
+
+function toRow(input: EventInput) {
+  return { title: input.title, day: input.date, start_time: input.time || null, location: input.location };
+}
 
 export function useEvents() {
   const { data, status, reload } = useQuery<DateEvent[]>(KEY, load, []);
@@ -70,40 +63,30 @@ export function useEvents() {
     status,
     reload,
     async add(input: EventInput) {
-      const { error } = await addEvent({ ...input, event_complete: false });
+      const { data: row, error } = await supabase.from('dates').insert(toRow(input)).select().single();
       if (error) throw error;
-      invalidate(KEY);
+      setQueryData<DateEvent[]>(KEY, (prev) => [...prev, toEvent(row)]);
     },
-    async update(id: string, input: EventInput) {
-      setQueryData<DateEvent[]>(KEY, (prev = []) =>
-        prev.map((e) => (e.id === id ? { ...e, ...input } : e)),
+    update(id: string, input: EventInput) {
+      return mutate<DateEvent[]>(
+        KEY,
+        (prev) => prev.map((e) => (e.id === id ? { ...e, ...input } : e)),
+        () => supabase.from('dates').update(toRow(input)).eq('id', id),
       );
-      const { error } = await updateEvent(id, {
-        title: input.title,
-        event_date: input.date,
-        event_time: input.time,
-        location: input.location,
-      });
-      if (error) {
-        invalidate(KEY);
-        throw error;
-      }
     },
-    async toggle(id: string, done: boolean) {
-      setQueryData<DateEvent[]>(KEY, (prev = []) => prev.map((e) => (e.id === id ? { ...e, done } : e)));
-      const { error } = await updateEventComplete(id, done);
-      if (error) {
-        invalidate(KEY);
-        throw error;
-      }
+    toggle(id: string, done: boolean) {
+      return mutate<DateEvent[]>(
+        KEY,
+        (prev) => prev.map((e) => (e.id === id ? { ...e, done } : e)),
+        () => supabase.from('dates').update({ done }).eq('id', id),
+      );
     },
-    async remove(id: string) {
-      setQueryData<DateEvent[]>(KEY, (prev = []) => prev.filter((e) => e.id !== id));
-      const { error } = await deleteEvent(id);
-      if (error) {
-        invalidate(KEY);
-        throw error;
-      }
+    remove(id: string) {
+      return mutate<DateEvent[]>(
+        KEY,
+        (prev) => prev.filter((e) => e.id !== id),
+        () => supabase.from('dates').delete().eq('id', id),
+      );
     },
   };
 }

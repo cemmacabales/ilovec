@@ -1,0 +1,1 @@
+create table if not exists budgets (id uuid primary key default gen_random_uuid(), category text not null, monthly_limit numeric not null, current_spent numeric not null default 0, alert_threshold integer not null default 80, is_active boolean not null default true, created_at timestamptz not null default now());

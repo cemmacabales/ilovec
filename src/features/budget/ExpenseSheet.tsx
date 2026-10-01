@@ -5,8 +5,8 @@ import { Button } from '../../components/ui/Button';
 import { ConfirmButton } from '../../components/ui/Feedback';
 import { ChoiceRow, FieldGroup, FormError, InputRow, SelectRow, TitleInput } from '../../components/ui/Fields';
 import { SAVE_FAILED, useToast } from '../../components/ui/Toast';
-import { useBudget } from '../../contexts/BudgetContext';
-import type { Expense, ExpenseCategory } from '../../types/budget';
+import { useExpenses, type Expense, type ExpenseCategory, type Payer } from '../../data/budget';
+import { useMe } from '../../lib/auth';
 import { todayKey } from '../../lib/format';
 import { EXPENSE_CATEGORIES } from './categories';
 
@@ -24,19 +24,20 @@ export function ExpenseSheet({ open, onClose, editing }: ExpenseSheetProps) {
   );
 }
 
-const PAYERS: { value: Expense['paidBy']; label: string }[] = [
-  { value: 'partner1', label: 'Him' },
-  { value: 'partner2', label: 'Her' },
+const PAYERS: { value: Payer; label: string }[] = [
+  { value: 'him', label: 'Him' },
+  { value: 'her', label: 'Her' },
 ];
 
 function ExpenseForm({ editing, onDone }: { editing?: Expense | null; onDone: () => void }) {
-  const { addExpense, updateExpense, deleteExpense } = useBudget();
+  const { add: addExpense, update: updateExpense, remove: deleteExpense } = useExpenses();
+  const { person: me } = useMe();
   const toast = useToast();
   const [amount, setAmount] = useState(editing ? String(editing.amount) : '');
   const [description, setDescription] = useState(editing?.description ?? '');
   const [category, setCategory] = useState<ExpenseCategory>(editing?.category ?? 'restaurants');
   const [date, setDate] = useState(editing?.date || todayKey());
-  const [paidBy, setPaidBy] = useState<Expense['paidBy']>(editing?.paidBy ?? 'partner1');
+  const [paidBy, setPaidBy] = useState<Payer>(editing?.paidBy ?? me ?? 'him');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,8 +55,6 @@ function ExpenseForm({ editing, onDone }: { editing?: Expense | null; onDone: ()
         category,
         date,
         paidBy,
-        splitType: 'equal' as const,
-        tags: [],
       };
       if (editing) await updateExpense(editing.id, data);
       else await addExpense(data);

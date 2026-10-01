@@ -290,3 +290,111 @@
     opacity: 0;
   }
 }
+
+/* ---------- Account (sidebar foot and the More sheet) ---------- */
+
+.account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.account__out {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  font-weight: 600;
+  color: var(--ink-2);
+  transition: color var(--dur-1) ease;
+}
+
+.account__out:hover {
+  color: var(--accent-ink);
+}
+
+/* ---------- Sign-in and other full-screen gates ---------- */
+
+.gate {
+  display: grid;
+  grid-template-columns: minmax(0, 380px);
+  place-content: center;
+  min-height: 100dvh;
+  padding: var(--s-6) var(--s-4);
+  background: var(--bg);
+}
+
+.gate__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--s-8) var(--s-6) var(--s-6);
+  border-radius: var(--r-widget);
+  background: var(--surface);
+  box-shadow: var(--shadow-widget);
+  text-align: center;
+  animation: fade-in var(--dur-3) var(--ease-out);
+}
+
+.gate__mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: var(--s-4);
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-thumb);
+}
+
+.gate__title {
+  font-family: var(--font-display);
+  font-size: var(--t-title);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+.gate__sub {
+  margin-top: 2px;
+  color: var(--ink-2);
+}
+
+.gate__text {
+  margin-top: var(--s-2);
+  max-width: 34ch;
+  color: var(--ink-2);
+}
+
+.gate__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: 100%;
+  margin-top: var(--s-6);
+  text-align: left;
+}
+
+.gate__submit {
+  width: 100%;
+  height: 44px;
+  justify-content: center;
+}
+
+.gate__foot {
+  margin-top: var(--s-5);
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.gate__actions {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: var(--s-6);
+}

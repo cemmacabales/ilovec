@@ -1,11 +1,9 @@
 import type React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import AppShell from './app/AppShell';
+import { AuthGate } from './app/AuthGate';
 import HomePage from './pages/HomePage';
 import { ToastProvider } from './components/ui/Toast';
-import { BudgetProvider } from './contexts/BudgetContext';
-import { BucketListProvider } from './contexts/BucketListContext';
-import { GalleryProvider } from './contexts/GalleryContext';
 
 // Home ships in the main bundle; every other page loads on first visit.
 const page = (load: () => Promise<{ default: React.ComponentType }>) => () =>
@@ -32,13 +30,9 @@ const router = createBrowserRouter([
 export default function App() {
   return (
     <ToastProvider>
-      <BudgetProvider>
-        <BucketListProvider>
-          <GalleryProvider>
-            <RouterProvider router={router} />
-          </GalleryProvider>
-        </BucketListProvider>
-      </BudgetProvider>
+      <AuthGate>
+        <RouterProvider router={router} />
+      </AuthGate>
     </ToastProvider>
   );
 }

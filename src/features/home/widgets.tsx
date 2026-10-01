@@ -19,10 +19,9 @@ import { SAVE_FAILED, useToast } from '../../components/ui/Toast';
 import { useEvents } from '../../data/events';
 import { isOverdue, useTasks } from '../../data/tasks';
 import { posterUrl, useWatch } from '../../data/watch';
-import { useBudget } from '../../contexts/BudgetContext';
-import { useBucketList } from '../../contexts/BucketListContext';
-import { useGallery } from '../../contexts/GalleryContext';
-import { useConnection } from '../../lib/connection';
+import { useBudgets, useMonthSpend } from '../../data/budget';
+import { useBucketList } from '../../data/bucket';
+import { useGallery } from '../../data/gallery';
 import { daysFromToday, formatDay, formatTime, money, parseDay, personLabel, plural } from '../../lib/format';
 import { navFor } from '../../app/nav';
 import { useLinger } from '../../lib/useLinger';
@@ -30,6 +29,7 @@ import { DateSheet } from '../dates/DateSheet';
 import { TaskSheet } from '../tasks/TaskSheet';
 import { ExpenseSheet } from '../budget/ExpenseSheet';
 import { BucketSheet } from '../bucket/BucketSheet';
+import { uploadPhotos } from '../gallery/upload';
 import usPhoto from '../../assets/us.webp';
 
 function Countdown({ date }: { date: Date }) {
@@ -101,14 +101,14 @@ export function NextDateWidget({ index }: { index: number }) {
 }
 
 export function SpendWidget({ index }: { index: number }) {
-  const { isLoaded, getTotalSpentThisMonth, budgets } = useBudget();
-  const connection = useConnection();
+  const { data: spend, status } = useMonthSpend();
+  const { activeLimit: limit } = useBudgets();
   const [adding, setAdding] = useState(false);
-  const spent = getTotalSpentThisMonth();
-  const limit = budgets.filter((b) => b.isActive).reduce((s, b) => s + b.monthlyLimit, 0);
+  const spent = spend.total;
   const month = new Date().toLocaleDateString('en-US', { month: 'long' });
   const nav = navFor('/budget');
-  const unavailable = isLoaded && connection === 'offline';
+  const isLoaded = status !== 'loading';
+  const unavailable = status === 'error';
 
   return (
     <>
@@ -146,10 +146,10 @@ export function SpendWidget({ index }: { index: number }) {
 }
 
 export function BucketWidget({ index }: { index: number }) {
-  const { items, isLoading } = useBucketList();
-  const connection = useConnection();
+  const { items, status } = useBucketList();
   const [adding, setAdding] = useState(false);
-  const unavailable = !isLoading && items.length === 0 && connection === 'offline';
+  const isLoading = status === 'loading';
+  const unavailable = status === 'error';
   const nav = navFor('/bucket-list');
   const done = items.filter((i) => i.status === 'completed').length;
   const focus =
@@ -315,10 +315,7 @@ export function GalleryWidget({ index }: { index: number }) {
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const nav = navFor('/gallery');
-  // The shipped photo already fronts the Next date widget; only show a cover
-  // here once something has been added, so Home never repeats an image.
-  const uploads = photos.filter((p) => !p.sample);
-  const cover = uploads.find((p) => p.favorite) ?? uploads[0];
+  const cover = photos.find((p) => p.favorite) ?? photos[0];
 
   const add = (
     <>
@@ -333,10 +330,8 @@ export function GalleryWidget({ index }: { index: number }) {
         hidden
         onChange={(e) => {
           const files = Array.from(e.target.files ?? []).filter((f) => f.type.startsWith('image/'));
-          if (!files.length) return;
-          addPhotos(files, { albumId: null, tags: [] });
-          toast(`Added ${plural(files.length, 'photo')}`);
           e.target.value = '';
+          if (files.length) void uploadPhotos(files, { albumId: null, tags: [] }, addPhotos, toast);
         }}
       />
     </>
@@ -352,7 +347,7 @@ export function GalleryWidget({ index }: { index: number }) {
       tone={cover ? 'photo' : 'plain'}
       className="w-gallery"
     >
-      {cover && <img className="w-gallery__photo" src={cover.url} alt="" aria-hidden />}
+      {cover && <img className="w-gallery__photo" src={cover.thumb} alt="" aria-hidden />}
       {cover && <div className="w-gallery__shade" aria-hidden />}
       <WidgetHead icon={<Images size={16} weight="fill" />} title="Gallery" aside={add} />
       {cover ? (

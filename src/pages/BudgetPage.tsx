@@ -8,35 +8,30 @@ import { EmptyState, SkeletonRows } from '../components/ui/Feedback';
 import { ExpenseSheet } from '../features/budget/ExpenseSheet';
 import { GoalSheet, LimitSheet } from '../features/budget/PlanSheets';
 import { categoryMeta } from '../features/budget/categories';
-import { useBudget } from '../contexts/BudgetContext';
-import { useConnection } from '../lib/connection';
+import { useBudgets, useExpenses, useMonthSpend, useSavingsGoals } from '../data/budget';
 import { navFor } from '../app/nav';
 import { formatDay, money, parseDay, relativeDay } from '../lib/format';
-import type { Budget, Expense, SavingsGoal } from '../types/budget';
+import type { Budget, Expense, SavingsGoal } from '../data/budget';
 
 type View = 'spending' | 'limits' | 'goals';
 
-function monthKey(d = new Date()) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
-
 export default function BudgetPage() {
   const nav = navFor('/budget');
-  const { isLoaded, expenses, budgets, savingsGoals } = useBudget();
-  const connection = useConnection();
+  const { expenses, status } = useExpenses();
+  const { data: spend } = useMonthSpend();
+  const { budgets } = useBudgets();
+  const { goals: savingsGoals } = useSavingsGoals();
   const [view, setView] = useState<View>('spending');
   const [expenseSheet, setExpenseSheet] = useState<{ open: boolean; item: Expense | null }>({ open: false, item: null });
   const [limitSheet, setLimitSheet] = useState<{ open: boolean; item: Budget | null }>({ open: false, item: null });
   const [goalSheet, setGoalSheet] = useState<{ open: boolean; item: SavingsGoal | null }>({ open: false, item: null });
   const [showAll, setShowAll] = useState(false);
 
-  const thisMonth = monthKey();
   const monthName = new Date().toLocaleDateString('en-US', { month: 'long' });
+  const isLoaded = status !== 'loading';
 
-  const monthExpenses = useMemo(() => expenses.filter((e) => e.date.startsWith(thisMonth)), [expenses, thisMonth]);
-  const total = monthExpenses.reduce((s, e) => s + e.amount, 0);
-  const his = monthExpenses.filter((e) => e.paidBy === 'partner1').reduce((s, e) => s + e.amount, 0);
-  const hers = total - his;
+  // This month's totals come from the database's monthly_spend view.
+  const { total, him: his, her: hers } = spend;
 
   const byDay = useMemo(() => {
     const sorted = [...expenses].sort((a, b) => b.date.localeCompare(a.date));
@@ -50,10 +45,9 @@ export default function BudgetPage() {
     return { groups: [...groups.entries()], hidden: sorted.length - shown.length };
   }, [expenses, showAll]);
 
-  const spentIn = (category: string) =>
-    monthExpenses.filter((e) => e.category === category).reduce((s, e) => s + e.amount, 0);
+  const spentIn = (category: Budget['category']) => spend.byCategory[category] ?? 0;
 
-  const unavailable = isLoaded && connection === 'offline' && expenses.length === 0;
+  const unavailable = status === 'error';
 
   const addLabel = view === 'spending' ? 'Log expense' : view === 'limits' ? 'Set a limit' : 'New goal';
   const onAdd = () => {
@@ -152,7 +146,7 @@ export default function BudgetPage() {
                             <span className="money-row__text">
                               <span className="money-row__title">{e.description || meta.label}</span>
                               <span className="money-row__meta">
-                                {meta.label}, {e.paidBy === 'partner2' ? 'her' : 'him'}
+                                {meta.label}, {e.paidBy}
                               </span>
                             </span>
                             <span className="money-row__amount num">{money(e.amount)}</span>

@@ -852,23 +852,6 @@ html:has(dialog[open]) {
   color: var(--accent-ink);
 }
 
-.note {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s-2);
-  margin-bottom: var(--s-5);
-  padding: 10px 12px;
-  border-radius: var(--r-control);
-  background: var(--surface-2);
-  font-size: var(--t-small);
-  color: var(--ink-2);
-}
-
-.note svg {
-  flex: none;
-  margin-top: 1px;
-}
-
 /* ---------- Toasts (shown in the top layer, above sheets) ---------- */
 
 .toasts {
