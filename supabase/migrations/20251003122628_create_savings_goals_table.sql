@@ -1,0 +1,1 @@
+create table if not exists savings_goals (id uuid primary key default gen_random_uuid(), title text not null, target_amount numeric not null, current_amount numeric not null default 0, target_date date not null, category text not null, description text, created_at timestamptz not null default now());

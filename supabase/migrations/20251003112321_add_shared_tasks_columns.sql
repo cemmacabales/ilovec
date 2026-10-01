@@ -1,0 +1,1 @@
+alter table shared_tasks add column if not exists assigned_to text, add column if not exists priority text, add column if not exists due_date date, add column if not exists category text, add column if not exists is_completed boolean default false, add column if not exists created_at timestamptz default now();
