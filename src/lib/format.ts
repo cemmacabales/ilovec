@@ -8,11 +8,8 @@ export const PEOPLE: { value: Person; label: string }[] = [
   { value: 'her', label: 'Her' },
 ];
 
-// Older rows stored 'me' / 'partner'; read them as him / her.
 export function toPerson(value: unknown): Person {
-  if (value === 'him' || value === 'me' || value === 'partner1') return 'him';
-  if (value === 'her' || value === 'partner' || value === 'partner2') return 'her';
-  return 'both';
+  return value === 'him' || value === 'her' ? value : 'both';
 }
 
 export function personLabel(p: Person) {

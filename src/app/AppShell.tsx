@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
-import { ArrowsClockwise, CaretRight, CloudSlash, DotsThreeCircle, Heart } from '@phosphor-icons/react';
+import { ArrowsClockwise, CaretRight, CloudSlash, DotsThreeCircle, Heart, SignOut } from '@phosphor-icons/react';
 import { NAV } from './nav';
 import { useConnection } from '../lib/connection';
+import { signOut, useMe } from '../lib/auth';
+import { personLabel } from '../lib/format';
+import { demoMode } from '../dev/flag';
 import { useTheme, type ThemePref } from '../lib/theme';
 import { Segmented } from '../components/ui/Segmented';
 import { Sheet } from '../components/ui/Sheet';
@@ -32,6 +35,20 @@ function ThemePicker() {
   return <Segmented label="Appearance" options={THEMES} value={theme} onChange={setTheme} stretch />;
 }
 
+function Account() {
+  const { person } = useMe();
+  if (demoMode) return <p className="account">Sample data (demo)</p>;
+  return (
+    <div className="account">
+      <span>{person ? `Signed in as ${personLabel(person)}` : 'Signed in'}</span>
+      <button type="button" className="account__out" onClick={() => void signOut()}>
+        <SignOut size={14} weight="bold" aria-hidden />
+        Sign out
+      </button>
+    </div>
+  );
+}
+
 function Sidebar() {
   return (
     <aside className="sidebar" aria-label="Sections">
@@ -51,6 +68,7 @@ function Sidebar() {
       <div className="sidebar__foot">
         <span className="sidebar__foot-label">Appearance</span>
         <ThemePicker />
+        <Account />
       </div>
     </aside>
   );
@@ -103,6 +121,7 @@ function TabBar() {
         <div className="more-theme">
           <span className="field-group__label">Appearance</span>
           <ThemePicker />
+          <Account />
         </div>
       </Sheet>
     </>

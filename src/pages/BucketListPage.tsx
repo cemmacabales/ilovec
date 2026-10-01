@@ -7,22 +7,21 @@ import { Segmented } from '../components/ui/Segmented';
 import { Check } from '../components/ui/Check';
 import { EmptyState, SkeletonRows } from '../components/ui/Feedback';
 import { SAVE_FAILED, useToast } from '../components/ui/Toast';
-import { useBucketList } from '../contexts/BucketListContext';
-import { useConnection } from '../lib/connection';
+import { useBucketList, type BucketItem } from '../data/bucket';
 import { navFor } from '../app/nav';
-import { capitalize, formatDay, money } from '../lib/format';
-import type { BucketListItem } from '../types/bucketlist';
+import { capitalize, formatDay, money, parseDay } from '../lib/format';
 import { BucketSheet } from '../features/bucket/BucketSheet';
 
 type View = 'all' | 'in_progress' | 'not_started' | 'completed';
 
 export default function BucketListPage() {
   const nav = navFor('/bucket-list');
-  const { items, isLoading, updateItem } = useBucketList();
-  const connection = useConnection();
+  const { items, status, update: updateItem } = useBucketList();
+  const isLoading = status === 'loading';
+  const unavailable = status === 'error';
   const toast = useToast();
   const [view, setView] = useState<View>('all');
-  const [sheet, setSheet] = useState<{ open: boolean; item: BucketListItem | null }>({ open: false, item: null });
+  const [sheet, setSheet] = useState<{ open: boolean; item: BucketItem | null }>({ open: false, item: null });
 
   const counts = useMemo(
     () => ({
@@ -80,7 +79,7 @@ export default function BucketListPage() {
         <EmptyState
           icon={<Mountains size={28} />}
           title={
-            items.length === 0 && connection === 'offline'
+            unavailable
               ? "Your list isn't loading"
               : view === 'completed'
                 ? 'Nothing done yet'
@@ -94,7 +93,7 @@ export default function BucketListPage() {
             )
           }
         >
-          {items.length === 0 && connection === 'offline'
+          {unavailable
             ? "Your shared data isn't reachable right now."
             : 'A trip, a class, a concert. Add the things you want to do together.'}
         </EmptyState>
@@ -102,7 +101,7 @@ export default function BucketListPage() {
         <ul className="rows">
           {shown.map((item) => {
             const done = item.status === 'completed';
-            const target = item.targetDate ? new Date(item.targetDate) : null;
+            const target = parseDay(item.targetDate);
             return (
               <li key={item.id} className="goal-row" data-done={done || undefined}>
                 <Check
@@ -120,7 +119,7 @@ export default function BucketListPage() {
                   <span className="goal-row__title">{item.title}</span>
                   <span className="goal-row__meta">
                     <span className="pill">{capitalize(item.category)}</span>
-                    {target && !isNaN(target.getTime()) && <span>By {formatDay(target)}</span>}
+                    {target && <span>By {formatDay(target)}</span>}
                     {item.estimatedCost ? <span className="num">{money(item.estimatedCost, { round: true, currency: item.currency })}</span> : null}
                   </span>
                 </button>

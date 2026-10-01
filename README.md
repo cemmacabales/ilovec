@@ -1,69 +1,47 @@
-# React + TypeScript + Vite
+# I Love C
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A private shared home for C & C: dates, tasks, budget, watchlist, gallery, bucket list and music, built with React, Vite and Supabase, and deployed on Netlify.
 
-Currently, two official plugins are available:
+## Run it locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cp .env.example .env   # then fill in the values
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+`npm run dev` also serves the TMDB proxy at `/api/tmdb`, using `TMDB_API_KEY` from `.env`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+To look around without signing in, open `/?demo` (dev builds only). It answers every request from in-memory sample data. `/?demo=off` turns it off.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Environment
+
+| Variable | Where | What |
+|---|---|---|
+| `VITE_SUPABASE_URL` | `.env`, Netlify | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | `.env`, Netlify | Supabase anon key. Public by design; RLS protects the data |
+| `TMDB_API_KEY` | `.env`, Netlify | Read server-side by `netlify/functions/tmdb.mts`, never bundled |
+
+## Backend
+
+The schema lives in `supabase/migrations`. Every table has Row Level Security: only accounts listed in `public.members` can read or write anything, and photos sit in a private Storage bucket served through signed URLs. Both phones stay in sync through Supabase Realtime.
+
+### Accounts
+
+There is no sign-up. To give someone access:
+
+1. In the Supabase dashboard, open **Authentication > Users > Add user**, enter an email and password, and tick **Auto Confirm User**.
+2. Link the account as Him or Her in the SQL editor:
+
+   ```sql
+   insert into public.members (user_id, person)
+   select id, 'him' from auth.users where email = 'his@example.com';
+   ```
+
+An account that signs in without a `members` row sees an "Almost there" screen and no data.
+
+Also turn off **Authentication > Sign In / Providers > Allow new users to sign up**. Unlinked accounts can't see anything either way, but there's no reason to allow them.
+
+### Changing the schema
+
+Add a new file to `supabase/migrations`, apply it, then regenerate `src/types/database.ts` (`supabase gen types typescript`).

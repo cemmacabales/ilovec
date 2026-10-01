@@ -9,7 +9,7 @@ import { Sheet } from '../components/ui/Sheet';
 import { ConfirmButton, EmptyState, LoadError } from '../components/ui/Feedback';
 import { ChoiceRow, FieldGroup } from '../components/ui/Fields';
 import { SAVE_FAILED, useToast } from '../components/ui/Toast';
-import tmdbService from '../services/tmdb';
+import { tmdb } from '../services/tmdb';
 import type { TMDBMovie, TMDBTVShow } from '../types/tmdb';
 import {
   WATCH_STATUSES,
@@ -52,10 +52,10 @@ function useFind(query: string, kind: Kind, active: boolean) {
       try {
         let items: Media[];
         if (!q) {
-          items = (await tmdbService.getTrending(kind === 'all' ? 'all' : kind, 'week')).results;
-        } else if (kind === 'movie') items = (await tmdbService.searchMovies(q)).results;
-        else if (kind === 'tv') items = (await tmdbService.searchTVShows(q)).results;
-        else items = (await tmdbService.searchMulti(q)).results;
+          items = (await tmdb.getTrending(kind === 'all' ? 'all' : kind, 'week')).results;
+        } else if (kind === 'movie') items = (await tmdb.searchMovies(q)).results;
+        else if (kind === 'tv') items = (await tmdb.searchTVShows(q)).results;
+        else items = (await tmdb.searchMulti(q)).results;
         // Multi search also returns people; keep only titles.
         items = items.filter((i) => 'title' in i || 'name' in i).filter((i) => !('media_type' in i) || i.media_type !== 'person');
         if (!cancelled) {

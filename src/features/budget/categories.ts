@@ -13,7 +13,7 @@ import {
   DotsThree,
   type Icon,
 } from '@phosphor-icons/react';
-import type { ExpenseCategory } from '../../types/budget';
+import type { ExpenseCategory } from '../../data/budget';
 
 export const EXPENSE_CATEGORIES: { value: ExpenseCategory; label: string; icon: Icon }[] = [
   { value: 'restaurants', label: 'Food & drinks', icon: ForkKnife },

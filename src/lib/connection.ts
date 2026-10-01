@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { demoMode } from '../dev/flag';
 
 // Tracks whether the shared database is reachable, based on real requests.
 // 'unknown' until the first request settles.
@@ -26,14 +27,12 @@ export const connection = {
 // fetch wrapper handed to the Supabase client: network failures flip the
 // app into offline mode, any HTTP response means the server is reachable.
 export const trackedFetch: typeof fetch = async (input, init) => {
-  if (import.meta.env.DEV) {
+  if (import.meta.env.DEV && demoMode) {
     const demo = await import('../dev/demo');
-    if (demo.demoEnabled()) {
-      const res = await demo.demoFetch(input, init);
-      if (res) {
-        connection.markOnline();
-        return res;
-      }
+    const res = await demo.demoFetch(input, init);
+    if (res) {
+      connection.markOnline();
+      return res;
     }
   }
   try {

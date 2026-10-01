@@ -1,16 +1,14 @@
 import { useState } from 'react';
-import { CalendarBlank, Coins, Flag, Gauge, Tag } from '@phosphor-icons/react';
+import { CalendarBlank, Coins, Flag, Gauge, MapPin, Tag } from '@phosphor-icons/react';
 import { Sheet } from '../../components/ui/Sheet';
 import { Button } from '../../components/ui/Button';
 import { ConfirmButton } from '../../components/ui/Feedback';
 import { ChoiceRow, FieldGroup, FormError, InputRow, NotesField, SelectRow, TitleInput } from '../../components/ui/Fields';
 import { SAVE_FAILED, useToast } from '../../components/ui/Toast';
-import { useBucketList } from '../../contexts/BucketListContext';
-import { addBucketListItem } from '../../services/supabase';
-import { capitalize, toDayKey } from '../../lib/format';
-import type { BucketListCategory, BucketListItem, Difficulty, ItemStatus, Priority } from '../../types/bucketlist';
+import { useBucketList, type BucketCategory, type BucketItem, type Difficulty, type ItemStatus, type Priority } from '../../data/bucket';
+import { capitalize } from '../../lib/format';
 
-export function BucketSheet({ open, onClose, editing }: { open: boolean; onClose: () => void; editing?: BucketListItem | null }) {
+export function BucketSheet({ open, onClose, editing }: { open: boolean; onClose: () => void; editing?: BucketItem | null }) {
   return (
     <Sheet open={open} onClose={onClose} title={editing ? 'Edit goal' : 'Add to the list'}>
       <GoalForm key={editing?.id ?? 'new'} editing={editing ?? null} onDone={onClose} />
@@ -18,7 +16,7 @@ export function BucketSheet({ open, onClose, editing }: { open: boolean; onClose
   );
 }
 
-const CATEGORIES: BucketListCategory[] = [
+const CATEGORIES: BucketCategory[] = [
   'travel', 'adventure', 'experiences', 'learning', 'relationships', 'creativity',
   'health', 'personal', 'career', 'financial', 'spiritual', 'other',
 ];
@@ -40,17 +38,18 @@ const STATUSES: { value: ItemStatus; label: string }[] = [
 interface Form {
   title: string;
   description: string;
-  category: BucketListCategory;
+  category: BucketCategory;
   priority: Priority;
   difficulty: Difficulty;
   targetDate: string;
+  location: string;
   cost: string;
   progress: number;
   status: ItemStatus;
 }
 
-function GoalForm({ editing, onDone }: { editing: BucketListItem | null; onDone: () => void }) {
-  const { updateItem, deleteItem, refresh } = useBucketList();
+function GoalForm({ editing, onDone }: { editing: BucketItem | null; onDone: () => void }) {
+  const { add, update, remove } = useBucketList();
   const toast = useToast();
   const [form, setForm] = useState<Form>({
     title: editing?.title ?? '',
@@ -58,7 +57,8 @@ function GoalForm({ editing, onDone }: { editing: BucketListItem | null; onDone:
     category: editing?.category ?? 'experiences',
     priority: editing?.priority ?? 'medium',
     difficulty: editing?.difficulty ?? 'medium',
-    targetDate: editing?.targetDate ? toDayKey(new Date(editing.targetDate)) : '',
+    targetDate: editing?.targetDate ?? '',
+    location: editing?.location ?? '',
     cost: editing?.estimatedCost ? String(editing.estimatedCost) : '',
     progress: editing?.progress ?? 0,
     status: editing?.status ?? 'not_started',
@@ -73,35 +73,24 @@ function GoalForm({ editing, onDone }: { editing: BucketListItem | null; onDone:
     }
     setSaving(true);
     try {
-      const cost = form.cost ? parseFloat(form.cost) : undefined;
+      const cost = form.cost ? parseFloat(form.cost) : null;
+      const input = {
+        title: form.title.trim(),
+        description: form.description.trim(),
+        category: form.category,
+        priority: form.priority,
+        difficulty: form.difficulty,
+        targetDate: form.targetDate,
+        location: form.location.trim(),
+        estimatedCost: cost,
+        progress: form.progress,
+      };
       if (editing) {
         const status: ItemStatus = form.progress === 100 ? 'completed' : form.status === 'completed' ? 'in_progress' : form.status;
-        await updateItem(editing.id, {
-          title: form.title.trim(),
-          description: form.description.trim(),
-          category: form.category,
-          priority: form.priority,
-          difficulty: form.difficulty,
-          targetDate: form.targetDate ? new Date(form.targetDate) : undefined,
-          estimatedCost: cost,
-          progress: form.progress,
-          status,
-        });
+        await update(editing.id, { ...input, status });
       } else {
-        const { error: err } = await addBucketListItem({
-          title: form.title.trim(),
-          description: form.description.trim() || undefined,
-          category: form.category,
-          priority: form.priority,
-          status: form.progress > 0 ? 'in_progress' : 'not_started',
-          difficulty: form.difficulty,
-          estimatedCost: cost,
-          currency: 'PHP',
-          targetDate: form.targetDate || undefined,
-          tags: [],
-        });
-        if (err) throw err;
-        await refresh();
+        const status: ItemStatus = form.progress === 100 ? 'completed' : form.progress > 0 ? 'in_progress' : 'not_started';
+        await add({ ...input, status });
       }
       toast(editing ? 'Saved' : 'Added to the list');
       onDone();
@@ -132,7 +121,7 @@ function GoalForm({ editing, onDone }: { editing: BucketListItem | null; onDone:
           label="Kind"
           icon={<Tag size={18} aria-hidden />}
           value={form.category}
-          onChange={(e) => setForm({ ...form, category: e.target.value as BucketListCategory })}
+          onChange={(e) => setForm({ ...form, category: e.target.value as BucketCategory })}
         >
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>
@@ -146,6 +135,13 @@ function GoalForm({ editing, onDone }: { editing: BucketListItem | null; onDone:
           type="date"
           value={form.targetDate}
           onChange={(e) => setForm({ ...form, targetDate: e.target.value })}
+        />
+        <InputRow
+          label="Where"
+          icon={<MapPin size={18} aria-hidden />}
+          placeholder="Anywhere"
+          value={form.location}
+          onChange={(e) => setForm({ ...form, location: e.target.value })}
         />
         <InputRow
           label="Cost"
@@ -223,7 +219,7 @@ function GoalForm({ editing, onDone }: { editing: BucketListItem | null; onDone:
           <ConfirmButton
             onConfirm={async () => {
               try {
-                await deleteItem(editing.id);
+                await remove(editing.id);
                 onDone();
               } catch {
                 toast(SAVE_FAILED, 'error');
