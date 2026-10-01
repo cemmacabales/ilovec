@@ -60,7 +60,7 @@ const initialState: BucketListState = {
   items: [],
   filters: defaultFilters,
   settings: defaultSettings,
-  isLoading: false,
+  isLoading: true,
 };
 
 function bucketListReducer(state: BucketListState, action: BucketListAction): BucketListState {
@@ -126,6 +126,39 @@ function bucketListReducer(state: BucketListState, action: BucketListAction): Bu
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function mapBucketRow(item: any): BucketListItem {
+  return {
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    category: item.category,
+    priority: item.priority,
+    status: item.status,
+    difficulty: item.difficulty,
+    estimatedCost: item.estimated_cost,
+    currency: item.currency,
+    targetDate: item.target_date ? new Date(item.target_date) : undefined,
+    completedDate: item.completed_date ? new Date(item.completed_date) : undefined,
+    progress: typeof item.progress === 'number' ? item.progress : 0,
+    subGoals: Array.isArray(item.sub_goals) ? item.sub_goals : [],
+    tags: Array.isArray(item.tags) ? item.tags : [],
+    location: item.location,
+    notes: item.notes,
+    inspiration: item.inspiration,
+    timeToComplete: item.time_to_complete,
+    seasonality: item.seasonality,
+    prerequisites: Array.isArray(item.prerequisites) ? item.prerequisites : [],
+    resources: Array.isArray(item.resources) ? item.resources : [],
+    milestones: Array.isArray(item.milestones) ? item.milestones : [],
+    reminderDate: item.reminder_date ? new Date(item.reminder_date) : undefined,
+    isArchived: typeof item.is_archived === 'boolean' ? item.is_archived : false,
+    isFavorite: typeof item.is_favorite === 'boolean' ? item.is_favorite : false,
+    createdDate: item.created_at ? new Date(item.created_at) : new Date(),
+    updatedDate: new Date(),
+  };
+}
+
 const BucketListContext = createContext<BucketListContextType | undefined>(undefined);
 
 export function BucketListProvider({ children }: { children: React.ReactNode }) {
@@ -142,39 +175,13 @@ export function BucketListProvider({ children }: { children: React.ReactNode }) 
         }
         if (data) {
           // Map Supabase fields to BucketListItem
-const items = data.map((item: any) => ({
-  id: item.id,
-  title: item.title,
-  description: item.description,
-  category: item.category,
-  priority: item.priority,
-  status: item.status,
-  difficulty: item.difficulty,
-  estimatedCost: item.estimated_cost,
-  currency: item.currency,
-  targetDate: item.target_date ? new Date(item.target_date) : undefined,
-  completedDate: item.completed_date ? new Date(item.completed_date) : undefined,
-  progress: typeof item.progress === 'number' ? item.progress : 0,
-  subGoals: Array.isArray(item.sub_goals) ? item.sub_goals : [],
-  tags: Array.isArray(item.tags) ? item.tags : [],
-  location: item.location,
-  notes: item.notes,
-  inspiration: item.inspiration,
-  timeToComplete: item.time_to_complete,
-  seasonality: item.seasonality,
-  prerequisites: Array.isArray(item.prerequisites) ? item.prerequisites : [],
-  resources: Array.isArray(item.resources) ? item.resources : [],
-  milestones: Array.isArray(item.milestones) ? item.milestones : [],
-  reminderDate: item.reminder_date ? new Date(item.reminder_date) : undefined,
-  isArchived: typeof item.is_archived === 'boolean' ? item.is_archived : false,
-  isFavorite: typeof item.is_favorite === 'boolean' ? item.is_favorite : false,
-  createdDate: item.created_at ? new Date(item.created_at) : new Date(),
-  updatedDate: new Date()
-}));
+const items = data.map(mapBucketRow);
           dispatch({ type: 'SET_ITEMS', payload: items });
         }
       } catch (error) {
         console.error('Error loading bucket list items from Supabase:', error);
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
     }
     loadSupabaseItems();
@@ -204,6 +211,7 @@ const items = data.map((item: any) => ({
   };
 
   const updateItem = async (id: string, updates: Partial<BucketListItem>) => {
+    dispatch({ type: 'UPDATE_ITEM', payload: { id, updates } });
     // Convert targetDate to string if present
     const supabaseUpdates: any = { ...updates };
     if (supabaseUpdates.targetDate instanceof Date) {
@@ -214,42 +222,19 @@ const items = data.map((item: any) => ({
     // Refetch items to sync UI
     const { data } = await import('../services/supabase').then(m => m.fetchBucketListItems());
     if (data) {
-      const items = data.map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        category: item.category,
-        priority: item.priority,
-        status: item.status,
-        difficulty: item.difficulty,
-        estimatedCost: item.estimated_cost,
-        currency: item.currency,
-        targetDate: item.target_date ? new Date(item.target_date) : undefined,
-        completedDate: item.completed_date ? new Date(item.completed_date) : undefined,
-        progress: typeof item.progress === 'number' ? item.progress : 0,
-        subGoals: Array.isArray(item.sub_goals) ? item.sub_goals : [],
-        tags: Array.isArray(item.tags) ? item.tags : [],
-        location: item.location,
-        notes: item.notes,
-        inspiration: item.inspiration,
-        timeToComplete: item.time_to_complete,
-        seasonality: item.seasonality,
-        prerequisites: Array.isArray(item.prerequisites) ? item.prerequisites : [],
-        resources: Array.isArray(item.resources) ? item.resources : [],
-        milestones: Array.isArray(item.milestones) ? item.milestones : [],
-        reminderDate: item.reminder_date ? new Date(item.reminder_date) : undefined,
-        isArchived: typeof item.is_archived === 'boolean' ? item.is_archived : false,
-        isFavorite: typeof item.is_favorite === 'boolean' ? item.is_favorite : false,
-        createdDate: item.created_at ? new Date(item.created_at) : new Date(),
-        updatedDate: new Date()
-      }));
+      const items = data.map(mapBucketRow);
       dispatch({ type: 'SET_ITEMS', payload: items });
     }
   };
 
   const deleteItem = async (id: string) => {
-    await import('../services/supabase').then(m => m.deleteBucketListItem(id));
     dispatch({ type: 'DELETE_ITEM', payload: id });
+    await import('../services/supabase').then(m => m.deleteBucketListItem(id));
+  };
+
+  const refresh = async () => {
+    const { data, error } = await import('../services/supabase').then(m => m.fetchBucketListItems());
+    if (!error && data) dispatch({ type: 'SET_ITEMS', payload: data.map(mapBucketRow) });
   };
 
   const duplicateItem = (id: string) => {
@@ -626,6 +611,7 @@ const items = data.map((item: any) => ({
     // Settings
     updateSettings,
     setItems,
+    refresh,
     
     // Analytics and insights
     getInsights,
@@ -662,6 +648,7 @@ const items = data.map((item: any) => ({
     bulkArchive,
     updateSettings,
     setItems,
+    refresh,
     getInsights,
     getRecommendations,
     exportData,

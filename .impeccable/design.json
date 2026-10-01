@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-01T13:32:56.463296+00:00",
+  "title": "Design System: I Love C",
+  "extensions": {
+    "colorMeta": {
+      "heart-red": {
+        "role": "primary",
+        "displayName": "Heart Red",
+        "canonical": "#cb392e",
+        "tonalRamp": [
+          "#3d100c",
+          "#5e1914",
+          "#86241c",
+          "#ad2f25",
+          "#cb392e",
+          "#e2665c",
+          "#f0a29b",
+          "#f9dad7"
+        ]
+      },
+      "grouped-ground": {
+        "role": "neutral",
+        "displayName": "Grouped Ground",
+        "canonical": "#f3f2ef",
+        "tonalRamp": [
+          "#22211f",
+          "#3a3936",
+          "#55534f",
+          "#6b6964",
+          "#9a9893",
+          "#c9c7c2",
+          "#ebeae6",
+          "#f3f2ef"
+        ]
+      },
+      "night-ground": {
+        "role": "neutral",
+        "displayName": "Night Ground",
+        "canonical": "#141413",
+        "tonalRamp": [
+          "#141413",
+          "#1a1a19",
+          "#1f1f1e",
+          "#252524",
+          "#2e2e2c",
+          "#444441",
+          "#6f6d69",
+          "#a19f9a"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title",
+        "purpose": "Page titles, the Home greeting, widget figures."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Sheet titles, the next date's name, empty-state titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Everything read or typed; 16px on phones."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Widget headers, list-group labels, meta, segmented items, pills."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Countdown and amount entry only; rounded tabular numerals."
+      }
+    },
+    "shadows": [
+      {
+        "name": "widget",
+        "value": "0 1px 1px rgba(40,32,24,.03), 0 6px 18px -8px rgba(40,32,24,.12)",
+        "purpose": "Widgets and page panels at rest."
+      },
+      {
+        "name": "raise",
+        "value": "0 2px 4px rgba(40,32,24,.05), 0 16px 36px -12px rgba(40,32,24,.22)",
+        "purpose": "Widget hover, toasts."
+      },
+      {
+        "name": "sheet",
+        "value": "0 28px 70px -20px rgba(24,20,16,.38), 0 2px 6px rgba(24,20,16,.06)",
+        "purpose": "Sheets and dialogs."
+      },
+      {
+        "name": "thumb",
+        "value": "0 1px 2px rgba(24,20,16,.12), 0 3px 8px -2px rgba(24,20,16,.12)",
+        "purpose": "Posters, brand mark, small floating buttons."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Default for state changes, entrances and the widget-to-page zoom."
+      },
+      {
+        "name": "ease-snap",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Checks filling and small confirmations."
+      },
+      {
+        "name": "dur-1",
+        "value": "120ms",
+        "purpose": "Hover backgrounds."
+      },
+      {
+        "name": "dur-2",
+        "value": "220ms",
+        "purpose": "Control state changes."
+      },
+      {
+        "name": "dur-3",
+        "value": "420ms",
+        "purpose": "Segmented thumb, sheets, view transitions."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "< 900px",
+        "purpose": "Tab bar instead of sidebar; full-bleed pages."
+      },
+      {
+        "name": "widgets-narrow",
+        "value": "container < 600px",
+        "purpose": "Home grid drops from 4 to 2 columns."
+      },
+      {
+        "name": "dates-stack",
+        "value": "< 1100px",
+        "purpose": "Calendar stacks above the agenda."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one main action on a page or sheet.",
+      "html": "<button class=\"ds-btn-primary\">Add task</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:0;border-radius:10px;background:var(--accent,#cb392e);color:#fff;font:600 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;transition:background-color .12s ease,transform .22s cubic-bezier(.22,1,.36,1)}.ds-btn-primary:hover{background:#b3322a}.ds-btn-primary:active{transform:scale(.97)}.ds-btn-primary:focus-visible{outline:2px solid #c2362b;outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Supporting actions next to a primary.",
+      "html": "<button class=\"ds-btn-secondary\">Albums</button>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:0;border-radius:10px;background:#fefefd;color:#22211f;box-shadow:inset 0 0 0 1px rgba(34,33,31,.16);font:600 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;transition:background-color .12s ease}.ds-btn-secondary:hover{background:#f7f6f4}.ds-btn-secondary:focus-visible{outline:2px solid #c2362b;outline-offset:2px}"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "nav",
+      "refersTo": "segmented",
+      "description": "Switches a page between views or filters.",
+      "html": "<div class=\"ds-seg\" role=\"radiogroup\"><button class=\"ds-seg-item is-on\" role=\"radio\" aria-checked=\"true\">Open <span>4</span></button><button class=\"ds-seg-item\" role=\"radio\" aria-checked=\"false\">Done <span>1</span></button></div>",
+      "css": ".ds-seg{display:inline-flex;padding:2px;border-radius:9px;background:#ebeae6;font:600 13px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif}.ds-seg-item{display:inline-flex;gap:6px;padding:6px 12px;border:0;border-radius:7px;background:transparent;color:#6b6964;cursor:pointer}.ds-seg-item span{font-weight:500}.ds-seg-item.is-on{background:#fefefd;color:#22211f;box-shadow:0 1px 2px rgba(0,0,0,.08),0 2px 6px -2px rgba(0,0,0,.14)}.ds-seg-item:hover{color:#22211f}"
+    },
+    {
+      "name": "Grouped Field",
+      "kind": "input",
+      "refersTo": "field-group",
+      "description": "iOS Settings-style form rows inside sheets.",
+      "html": "<div class=\"ds-group\"><label class=\"ds-row\"><span>Day</span><input type=\"date\" value=\"2026-10-04\"></label><label class=\"ds-row\"><span>Place</span><input placeholder=\"Optional\"></label></div>",
+      "css": ".ds-group{border-radius:10px;background:#f7f6f4;overflow:hidden;font:15px/1.4 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#22211f}.ds-row{display:flex;align-items:center;gap:12px;min-height:48px;padding:4px 14px;position:relative}.ds-row+.ds-row:before{content:'';position:absolute;top:0;left:14px;right:0;height:1px;background:rgba(34,33,31,.09)}.ds-row span{min-width:92px;font-weight:500}.ds-row input{flex:1;border:0;background:transparent;text-align:right;font:inherit;outline:none}.ds-row:focus-within{background:rgba(203,57,46,.06)}"
+    },
+    {
+      "name": "Pill",
+      "kind": "chip",
+      "refersTo": "pill",
+      "description": "Who a task is for, a bucket list category.",
+      "html": "<span class=\"ds-pill\">Both</span>",
+      "css": ".ds-pill{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;background:#ebeae6;color:#6b6964;font:600 13px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif}"
+    },
+    {
+      "name": "Widget",
+      "kind": "card",
+      "refersTo": "widget",
+      "description": "Home Screen widget: header row, content pinned to the bottom, opens its page.",
+      "html": "<a class=\"ds-widget\" href=\"#\"><span class=\"ds-widget-head\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 256 256\" fill=\"#c2362b\"><path d=\"M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Z\"/></svg>Spending</span><span class=\"ds-widget-fig\">&#8369;1,526</span><span class=\"ds-widget-label\">of &#8369;8,500 in October</span></a>",
+      "css": ".ds-widget{display:flex;flex-direction:column;width:200px;height:200px;padding:16px;border-radius:20px;background:#fefefd;color:#22211f;text-decoration:none;box-shadow:0 1px 1px rgba(40,32,24,.03),0 6px 18px -8px rgba(40,32,24,.12);font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;transition:transform .22s cubic-bezier(.22,1,.36,1),box-shadow .22s cubic-bezier(.22,1,.36,1)}.ds-widget:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(40,32,24,.05),0 16px 36px -12px rgba(40,32,24,.22)}.ds-widget:active{transform:scale(.98)}.ds-widget:focus-visible{outline:2px solid #c2362b;outline-offset:-3px}.ds-widget-head{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#6b6964}.ds-widget-fig{margin-top:auto;font:700 34px/1.05 ui-rounded,-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}.ds-widget-label{font-size:13px;color:#6b6964}"
+    },
+    {
+      "name": "Round Check",
+      "kind": "custom",
+      "description": "Reminders-style done toggle.",
+      "html": "<button class=\"ds-check\" role=\"checkbox\" aria-checked=\"false\" aria-label=\"Mark done\"></button><button class=\"ds-check on\" role=\"checkbox\" aria-checked=\"true\" aria-label=\"Mark not done\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 256 256\" fill=\"none\" stroke=\"#fff\" stroke-width=\"24\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"40 144 96 200 224 72\"/></svg></button>",
+      "css": ".ds-check{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:8px;border:0;border-radius:50%;background:transparent;box-shadow:inset 0 0 0 1.5px #8c8a85;cursor:pointer;transition:background-color .22s ease,box-shadow .22s ease}.ds-check:hover{box-shadow:inset 0 0 0 1.5px #6b6964}.ds-check.on{background:#cb392e;box-shadow:none}.ds-check:focus-visible{outline:2px solid #c2362b;outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Our Home Screen",
+    "overview": "The app is an iPhone Home Screen made for two people. Home is a stack of live widgets in three sizes (small, medium, large), each showing real content: their next date counting down over their own photo, open tasks you can tick from the widget, the posters of what they're watching. Every widget is a door. Tapping it grows the widget into its page, and each page is a quiet Notion-style document: an icon, a large title, one line of context, then honest rows separated by hairlines.\n\nWarmth comes from their content (the photo, the playlist name, their plans) and from one heart-red accent, not from tinted paper or decoration. Grounds are near-neutral warm grays, deliberately not cream. Type is Apple's own system face, ranked by weight more than size. Motion is sparse and meaningful: one staggered entrance on Home, the widget-to-page zoom, a check that fills when something gets done.",
+    "keyCharacteristics": [
+      "White widgets (20px corners) on a grouped gray ground; photo and accent widgets add color by content, not decoration.",
+      "One accent, heart red, used for primary actions, today, done states and the brand mark.",
+      "Notion-style pages: icon tile, large title, segmented filters, hairline rows, sheets for adding and editing.",
+      "iOS materials only where iOS uses them: the phone tab bar and bottom sheets.",
+      "Light and dark follow the device, with a per-device override."
+    ],
+    "rules": [
+      {
+        "name": "The One Heart Rule",
+        "body": "Heart red is the only accent. Categories, people and statuses never get their own hues; they're told apart by icon, label, shape or position.",
+        "section": "colors"
+      },
+      {
+        "name": "The Content Is The Color Rule",
+        "body": "Color arrives through their photos and posters and the single accent widget, never through gradients or tinted backgrounds.",
+        "section": "colors"
+      },
+      {
+        "name": "The Weight Before Size Rule",
+        "body": "Rank comes from weight and ink first. Use one of the sizes above; never add an in-between size to make something stand out.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Eyebrow Rule",
+        "body": "No small uppercase labels above headings. A widget's header row is its title; a list group's label is its heading.",
+        "section": "typography"
+      },
+      {
+        "name": "The Lift Means Tap Rule",
+        "body": "Only things you can open lift on hover (widgets, posters, albums). Static content never moves.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do put real content in widgets (photos, posters, names, amounts); a widget that is only an icon and a label isn't a widget.",
+      "Do call the couple \"C & C\", and use \"Him\", \"Her\" and \"Both\" wherever one person is meant.",
+      "Do show honest empty, loading and offline states. Show \"-\" and \"Not available right now\" rather than a fake zero.",
+      "Do keep each tracker page as a white panel on the grouped ground, so the widget-to-page zoom reads as one surface opening.",
+      "Do honor reduced motion: no entrance, drift, zoom or shimmer."
+    ],
+    "donts": [
+      "Don't add a second accent color, colored category chips, or gradients.",
+      "Don't use cream or beige grounds. The ground stays a near-neutral warm gray (`grouped-ground`).",
+      "Don't put small uppercase labels above headings, or number sections.",
+      "Don't show placeholder stats or invented activity on Home. Empty beats fake.",
+      "Don't mix icon families. Phosphor only, regular weight at rest and fill for active or emphasis."
+    ]
+  }
+}

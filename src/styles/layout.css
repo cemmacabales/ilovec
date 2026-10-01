@@ -1,0 +1,292 @@
+/* ---------- App shell ---------- */
+
+.shell {
+  min-height: 100dvh;
+}
+
+.shell__main {
+  min-width: 0;
+  padding: var(--s-6) var(--s-6) var(--s-12);
+  outline: none;
+}
+
+/* Desktop: Notion-style sidebar */
+@media (min-width: 900px) {
+  .shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sidebar);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-5);
+    height: 100dvh;
+    padding: var(--s-4) var(--s-3);
+    border-right: 1px solid var(--line);
+    background: var(--sidebar);
+    view-transition-name: sidebar;
+  }
+
+  .tabbar {
+    display: none !important;
+  }
+}
+
+@media (max-width: 899px) {
+  .sidebar {
+    display: none;
+  }
+
+  .shell__main {
+    padding: 0 0 calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: background-color var(--dur-1) ease;
+}
+
+.brand:hover {
+  background: var(--hover);
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-thumb);
+}
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.brand__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.brand__sub {
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.side-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-weight: 500;
+  color: var(--ink-2);
+  transition:
+    background-color var(--dur-1) ease,
+    color var(--dur-1) ease;
+}
+
+.side-link:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+.side-link[aria-current='page'] {
+  background: var(--pressed);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.side-link[aria-current='page'] svg {
+  color: var(--accent-ink);
+}
+
+.sidebar__foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin-top: auto;
+  padding: var(--s-2);
+}
+
+.sidebar__foot-label {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+/* Phone: iOS tab bar on a translucent material */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-tabbar);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 2px 4px env(safe-area-inset-bottom);
+  border-top: 1px solid var(--material-line);
+  background: var(--material);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  view-transition-name: tabbar;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tabbar {
+    background: var(--surface);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .tabbar {
+    background: var(--surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: calc(var(--tabbar-h) - 2px);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  color: var(--ink-2);
+  transition: color var(--dur-1) ease;
+}
+
+.tab[aria-current='page'] {
+  color: var(--accent-ink);
+}
+
+.tab:active svg {
+  transform: scale(0.9);
+}
+
+.tab svg {
+  transition: transform var(--dur-2) var(--ease-snap);
+}
+
+/* ---------- Pages ---------- */
+
+/* A tracker page is the widget, opened: a white panel on the grouped ground. */
+.page {
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.page:not(.page--home) {
+  min-height: calc(100dvh - var(--s-12));
+  padding: var(--s-8) var(--s-10) var(--s-12);
+  border-radius: var(--r-widget);
+  background: var(--surface);
+  box-shadow: var(--shadow-widget);
+}
+
+@media (max-width: 899px) {
+  .page:not(.page--home) {
+    min-height: calc(100dvh - var(--tabbar-h));
+    padding: max(var(--s-6), env(safe-area-inset-top)) var(--s-4) var(--s-10);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .banner {
+    margin: var(--s-3) var(--s-4) 0;
+  }
+}
+
+/* ---------- Signature: widget grows into its page ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(*) {
+    animation-duration: var(--dur-3);
+    animation-timing-function: var(--ease-out);
+  }
+
+  ::view-transition-old(root) {
+    animation: vt-out 180ms ease both;
+  }
+
+  ::view-transition-new(root) {
+    animation: vt-in 300ms var(--ease-out) both;
+  }
+
+  ::view-transition-group(tile-dates),
+  ::view-transition-group(tile-tasks),
+  ::view-transition-group(tile-budget),
+  ::view-transition-group(tile-watch),
+  ::view-transition-group(tile-gallery),
+  ::view-transition-group(tile-bucket),
+  ::view-transition-group(tile-music) {
+    border-radius: var(--r-widget);
+    overflow: clip;
+    animation-duration: 460ms;
+    animation-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1);
+  }
+
+  ::view-transition-old(tile-dates),
+  ::view-transition-old(tile-tasks),
+  ::view-transition-old(tile-budget),
+  ::view-transition-old(tile-watch),
+  ::view-transition-old(tile-gallery),
+  ::view-transition-old(tile-bucket),
+  ::view-transition-old(tile-music) {
+    animation: vt-out 220ms ease both;
+  }
+
+  ::view-transition-new(tile-dates),
+  ::view-transition-new(tile-tasks),
+  ::view-transition-new(tile-budget),
+  ::view-transition-new(tile-watch),
+  ::view-transition-new(tile-gallery),
+  ::view-transition-new(tile-bucket),
+  ::view-transition-new(tile-music) {
+    animation: vt-in 320ms 80ms var(--ease-out) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+  }
+}

@@ -1,0 +1,168 @@
+/*
+  I Love C design tokens.
+  World: iPhone Home Screen widgets inside a Notion-style workspace.
+  One accent (heart red), near-neutral warm grays, white widgets on a grouped ground.
+*/
+
+:root {
+  color-scheme: light;
+
+  /* Ground and surfaces */
+  --bg: #f3f2ef;
+  --surface: #fefefd;
+  --surface-2: #f7f6f4;
+  --surface-3: #ebeae6;
+  --sidebar: #f7f6f4;
+  --hover: rgba(34, 33, 31, 0.055);
+  --pressed: rgba(34, 33, 31, 0.09);
+
+  /* Ink */
+  --ink: #22211f;
+  --ink-2: #6b6964;
+  --ink-3: #9a9893; /* icons and disabled only, never body text */
+  --line: rgba(34, 33, 31, 0.09);
+  --line-strong: rgba(34, 33, 31, 0.16);
+  --control-ring: #8c8a85; /* 3:1 against surfaces for checks and toggles */
+  --seg-track: #ebeae6;
+  --seg-thumb: #fefefd;
+
+  /* Accent: heart red */
+  --accent: #cb392e; /* fills (white text passes AA) */
+  --accent-ink: #c2362b; /* accent text on light surfaces */
+  --accent-soft: rgba(203, 57, 46, 0.1);
+  --accent-softer: rgba(203, 57, 46, 0.06);
+  --on-accent: #ffffff;
+
+  /* Photo scrims and materials */
+  --scrim-photo: linear-gradient(180deg, rgba(18, 14, 12, 0) 30%, rgba(18, 14, 12, 0.72) 100%);
+  --dim: rgba(24, 22, 20, 0.36);
+  --material: rgba(250, 249, 247, 0.78);
+  --material-line: rgba(34, 33, 31, 0.1);
+
+  /* Depth: tinted to the warm ground, offset and soft */
+  --shadow-widget: 0 1px 1px rgba(40, 32, 24, 0.03), 0 6px 18px -8px rgba(40, 32, 24, 0.12);
+  --shadow-raise: 0 2px 4px rgba(40, 32, 24, 0.05), 0 16px 36px -12px rgba(40, 32, 24, 0.22);
+  --shadow-sheet: 0 28px 70px -20px rgba(24, 20, 16, 0.38), 0 2px 6px rgba(24, 20, 16, 0.06);
+  --shadow-thumb: 0 1px 2px rgba(24, 20, 16, 0.12), 0 3px 8px -2px rgba(24, 20, 16, 0.12);
+
+  /* Type: Apple system faces; rounded numerals where the platform has them */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable Text', 'Segoe UI', system-ui, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI', system-ui, 'Helvetica Neue', Arial, sans-serif;
+  --font-rounded: ui-rounded, 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* Four sizes; rank comes from weight and ink */
+  --t-title: 2.125rem; /* 34: large titles, widget figures */
+  --t-head: 1.25rem; /* 20: section and sheet titles */
+  --t-body: 0.9375rem; /* 15: everything you read */
+  --t-small: 0.8125rem; /* 13: meta, captions, labels */
+  --t-micro: 0.6875rem; /* 11: tab bar labels only */
+  --t-figure: 4rem; /* 64: widget numerals only (countdown) */
+
+  /* 4px grid */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+
+  /* Shape rule: widgets 20, sheets and panels 14, controls 10, chips full */
+  --r-widget: 20px;
+  --r-panel: 14px;
+  --r-control: 10px;
+  --r-thumb: 8px;
+  --r-chip: 999px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1); /* quick exponential settle */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 120ms;
+  --dur-2: 220ms;
+  --dur-3: 420ms;
+
+  /* Layers */
+  --z-sidebar: 20;
+  --z-tabbar: 30;
+  --z-banner: 40;
+
+  /* Layout */
+  --sidebar-w: 248px;
+  --content-max: 920px;
+  --tabbar-h: 56px;
+}
+
+/* Dark: Notion-dark charcoal ground, same hierarchy */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #141413;
+    --surface: #1f1f1e;
+    --surface-2: #252524;
+    --surface-3: #2e2e2c;
+    --sidebar: #1a1a19;
+    --hover: rgba(255, 255, 255, 0.055);
+    --pressed: rgba(255, 255, 255, 0.09);
+    --ink: #eeedea;
+    --ink-2: #a19f9a;
+    --ink-3: #6f6d69;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.14);
+    --control-ring: #76746f;
+    --seg-track: #2a2a28;
+    --seg-thumb: #444441;
+    --accent: #c9372c;
+    --accent-ink: #ff6f61;
+    --accent-soft: rgba(255, 111, 97, 0.14);
+    --accent-softer: rgba(255, 111, 97, 0.08);
+    --dim: rgba(0, 0, 0, 0.55);
+    --material: rgba(28, 28, 27, 0.78);
+    --material-line: rgba(255, 255, 255, 0.08);
+    --shadow-widget: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 6px 18px -8px rgba(0, 0, 0, 0.5);
+    --shadow-raise: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 16px 36px -12px rgba(0, 0, 0, 0.6);
+    --shadow-sheet: 0 28px 70px -20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --shadow-thumb: 0 1px 2px rgba(0, 0, 0, 0.4), 0 3px 8px -2px rgba(0, 0, 0, 0.4);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #141413;
+  --surface: #1f1f1e;
+  --surface-2: #252524;
+  --surface-3: #2e2e2c;
+  --sidebar: #1a1a19;
+  --hover: rgba(255, 255, 255, 0.055);
+  --pressed: rgba(255, 255, 255, 0.09);
+  --ink: #eeedea;
+  --ink-2: #a19f9a;
+  --ink-3: #6f6d69;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --control-ring: #76746f;
+  --seg-track: #2a2a28;
+  --seg-thumb: #444441;
+  --accent: #c9372c;
+  --accent-ink: #ff6f61;
+  --accent-soft: rgba(255, 111, 97, 0.14);
+  --accent-softer: rgba(255, 111, 97, 0.08);
+  --dim: rgba(0, 0, 0, 0.55);
+  --material: rgba(28, 28, 27, 0.78);
+  --material-line: rgba(255, 255, 255, 0.08);
+  --shadow-widget: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 6px 18px -8px rgba(0, 0, 0, 0.5);
+  --shadow-raise: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 16px 36px -12px rgba(0, 0, 0, 0.6);
+  --shadow-sheet: 0 28px 70px -20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-thumb: 0 1px 2px rgba(0, 0, 0, 0.4), 0 3px 8px -2px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 899px) {
+  :root {
+    --t-title: 2rem;
+    --t-body: 1rem; /* 16px keeps iOS from zooming into inputs */
+    --t-figure: 3.5rem;
+  }
+}

@@ -129,6 +129,7 @@ export interface ValidationResult {
 }
 
 export interface BudgetContextType {
+  isLoaded: boolean;
   expenses: Expense[];
   budgets: Budget[];
   savingsGoals: SavingsGoal[];
