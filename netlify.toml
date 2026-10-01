@@ -4,6 +4,10 @@
   functions = "netlify/functions"
   publish = "dist"
 
+[build.environment]
+  # Vite 7 needs Node 20.19+ or 22.12+
+  NODE_VERSION = "22"
+
 ## The app uses client-side routes (/dates, /tasks, ...), so every path serves index.html.
 [[redirects]]
   from = "/*"
